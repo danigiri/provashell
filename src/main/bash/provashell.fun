@@ -26,15 +26,29 @@ ERR_TESTNOTVALID_=5
 SKIPPING_=
 
 
+# INTERNAL HELPER FUNCTIONS
+
+################################################################################
+# Display message on STDERR
 echoerr_() { echo "$@" 1>&2; }
 
-startSkippingTests() {
-	SKIPPING__=1
-}
 
+################################################################################
+# echo the annotated <file> <annotation name>
+findAnnotatedFunctions_() {
 
-stopSkippingTests() {
-	SKIPPING__=
+	local file_="$1"
+	local annotation_="#$2$"
+	local functions_=()
+
+	# list all functions, remove the annotations themselves, remove the grep separator '--'
+	# and delete '() {' so we're only left with the function names
+	# also handle 'function foo }' style declaration
+	grep --after-context=1 "$annotation_" "$file_" | \
+	grep -v "$annotation_" | \
+	grep -v -- '--'| \
+	sed -E 's/\s*\(\)\s*//g' | sed 's/{//g' | \
+	sed -E 's/function[\ \t]//g'
 }
 
 
@@ -85,6 +99,19 @@ printTestResults_() {
 }
 
 
+################################################################################ 
+startSkippingTests() {
+	SKIPPING__=1
+}
+
+
+################################################################################
+stopSkippingTests() {
+	SKIPPING__=
+}
+
+
+################################################################################ 
 assertTrue() {
 	
 	local test_=''
@@ -110,6 +137,7 @@ assertTrue() {
 }
 
 
+################################################################################ 
 assertFalse() {
 
 	local test_=''
@@ -117,7 +145,7 @@ assertFalse() {
 	
 	if [ $# -eq 1 ]; then
 		test_="$1"
-		message_="assertFalse failed: '$test_' evaluates to false"
+		message_="assertFalse failed: '$test_' evaluates to true"
 	elif [ $# -eq 2 ]; then
 		message_="$1"
 		test_="$2"
@@ -135,6 +163,7 @@ assertFalse() {
 }
 
 
+################################################################################ 
 # expected actual [ message ]
 assertEq() {
 
@@ -148,18 +177,44 @@ assertEq() {
 		message_="$1"
 		test_="[ $2 -eq $3 ]"
 	else
-		echoerr_ "assertTrue: Wrong number of parameters '$#'"
+		echoerr_ "assertEq: Wrong number of parameters '$#'"
 		return $ERR_PARAMS_
 	fi
 	
 	assert_ 'true' "$test_"
 	local result_=$?
-	printTestResults_ $result_ 'assertTrue' "$message_"
+	printTestResults_ $result_ 'assertEq' "$message_"
 
 	return $result_
 	
 }
 
+
+################################################################################ 
+assertEquals() {
+
+	local test_=''
+	local message_=''
+	
+	if [ $# -eq 2 ]; then
+		test_="[ '$1' == '$2' ]"
+		message_="assertEquals failed: expecting $1 and got $2"
+	elif [ $# -eq 3 ]; then
+		message_="$1"
+		test_="[ '$2' == '$3' ]"
+	else
+		echoerr_ "assertEquals: Wrong number of parameters '$#'"
+		return $ERR_PARAMS_
+	fi
+	
+	assert_ 'true' "$test_"
+	local result_=$?
+	printTestResults_ $result_ 'assertEquals' "$message_"
+
+	return $result_
+	
+
+}
 
 #assertEquals() {
 #

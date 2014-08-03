@@ -30,7 +30,7 @@
     <properties>
     	<install.prefix_>/opt</install.prefix_>
 		<install.folder_>${install.prefix_}/provashell</install.folder_>
-		<test.script_>${project.artifactId}-test.sh</test.script_>
+		<test.pattern_>${project.artifactId}*-test.sh</test.pattern_>
 	</properties>
     
     <build>
@@ -39,7 +39,7 @@
 			<resource>
 	    		<directory>${basedir}/src/main/bash</directory>
 	    		<targetPath>${project.build.outputDirectory}</targetPath>
-	    		<filtering>false</filtering>
+	    		<filtering>true</filtering>
 	    	</resource>
 	    	<resource>
 	    		<directory>${basedir}/src/test/bash</directory>
@@ -67,10 +67,10 @@
 								<arguments>
 									<argument>-c</argument>
 									<argument>
-										if [ -e ${test.script_} ]; then 
-											chmod -v +x ${test.script_}; 
-											./${test.script_}; 
-										fi
+										for f in ${test.pattern_}; do 
+											chmod -v +x "$f"; 
+											./"$f"; 
+										done
 									</argument>
 								</arguments>
 							</configuration>
@@ -118,7 +118,7 @@
 									<location>${project.build.outputDirectory}</location>
 								</source>
 							</sources>
-							<directory>${install.folder_}/bin</directory>
+							<directory>${install.folder_}</directory>
 							<directoryIncluded>true</directoryIncluded>
 						</mapping>
                     </mappings>
