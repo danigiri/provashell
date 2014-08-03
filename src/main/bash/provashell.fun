@@ -1,4 +1,4 @@
-# PROVASHELL FUNCTIONS - Shell unit testing for the masses
+# PROVASHELL - Shell unit testing for the masses
 
 #  Copyright 2014 Daniel Giribet <dani - calidos.cat>
 #

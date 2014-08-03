@@ -45,6 +45,6 @@ function foo5 {
 }
 
 
-echo 'Testing tests'
+echo '----------- Running tests functions ----------'
 
-PROVASHELL_LIB=./classes/provashell.fun . classes/provashell
+. classes/provashell

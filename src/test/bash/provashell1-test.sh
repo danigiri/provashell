@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. classes/provashell.fun
+# load without running any tests
+. classes/provashell.fun -n
 
 OK_=0
 ERR_=1
@@ -11,16 +12,16 @@ BADTEST_=5
 
 echo '------------- Testing assertTrue -------------'
 
-assertTrue
+assertTrue &>/dev/null
 [ $? -ne $PARAMS_ ] && echo 'assertTrue without params should fail' && exit 1 
 
-assertTrue ''
+assertTrue '' &>/dev/null
 [ $? -ne $BADTEST_ ] && echo 'assertTrue with empty test should fail' && exit 1
 
 assertTrue '[ 0 -eq 0 ]'
 [ $? -ne $OK_ ] && echo 'assertTrue a true statement should not fail' && exit 1
 
-assertTrue '[ 0 -eq 1 ]'
+assertTrue '[ 0 -eq 1 ]' &>/dev/null
 [ $? -ne $FAIL_ ] && echo 'assertTrue a false statement should fail' && exit 1
 
 assertTrue 'message' '[ 0 -eq 0 ]'
@@ -32,16 +33,16 @@ m_=$(assertTrue 'message' '[ 0 -eq 1 ]')
 
 echo '------------ Testing assertFalse -------------'
 
-assertFalse
+assertFalse &>/dev/null
 [ $? -ne $PARAMS_ ] && echo 'assertFalse without params should fail' && exit 1 
 
-assertFalse ''
+assertFalse '' &>/dev/null
 [ $? -ne $BADTEST_ ] && echo 'assertFalse with empty test should fail' && exit 1
 
 assertFalse '[ 0 -eq 1 ]'
 [ $? -ne $OK_ ] && echo 'assertFalse a false statement should not fail' && exit 1
 
-assertFalse '[ 0 -eq 0 ]'
+assertFalse '[ 0 -eq 0 ]' &>/dev/null
 [ $? -ne $FAIL_ ] && echo 'assertFalse a true statement should fail' && exit 1
 
 assertFalse 'message' '[ 0 -eq 1 ]'
@@ -53,13 +54,13 @@ m_=$(assertFalse 'message' '[ 0 -eq 0 ]')
 
 echo '-------------- Testing assertEq --------------'
 
-assertEq
+assertEq &>/dev/null
 [ $? -ne $PARAMS_ ] && echo 'assertEq without params should fail' && exit 1 
 
 assertEq 0 0
 [ $? -ne $OK_ ] && echo 'assertEq two identical elements should not fail' && exit 1
 
-assertEq 0 1
+assertEq 0 1 &>/dev/null
 [ $? -ne $FAIL_ ] && echo 'assertEq two different elements should fail' && exit 1
 
 assertEq 'message' 0 0
@@ -71,13 +72,13 @@ m_=$(assertEq 'message' 0 1)
 
 echo '------------ Testing assertEquals ------------'
 
-assertEquals
+assertEquals &>/dev/null
 [ $? -ne $PARAMS_ ] && echo 'assertEquals without params should fail' && exit 1 
 
 assertEquals aa aa
 [ $? -ne $OK_ ] && echo 'assertEquals two identical elements should not fail' && exit 1
 
-assertEquals aa ab
+assertEquals aa ab &>/dev/null
 [ $? -ne $FAIL_ ] && echo 'assertEquals two different elements should fail' && exit 1
 
 assertEquals 'message' aa aa
@@ -85,4 +86,6 @@ assertEquals 'message' aa aa
 
 m_=$(assertEquals 'message' aa ab)
 [ "$m_" != 'message' ] && echo 'assertEquals two different elements should fail with message' && exit 1
+
+exit 0
 

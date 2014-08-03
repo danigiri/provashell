@@ -68,7 +68,7 @@
 									<argument>-c</argument>
 									<argument>
 										for f in ${test.pattern_}; do 
-											chmod -v +x "$f"; 
+											chmod -v +x "$f";
 											./"$f"; 
 										done
 									</argument>
