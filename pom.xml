@@ -31,15 +31,14 @@
     	<install.prefix_>/opt</install.prefix_>
 		<install.folder_>${install.prefix_}/provashell</install.folder_>
 		<test.pattern_>${project.artifactId}*-test.sh</test.pattern_>
-		<developer.id_>danigiri</developer.id_>
 		<scm.host_>github.com</scm.host_>
+		<developer.id_>danigiri</developer.id_>
 	</properties>
     
    	<scm>
 		<connection>scm:git:git@${scm.host_}:${developer.id_}/${project.artifactId}.git</connection>
 		<url>scm:git:git@${scm.host_}:${developer.id_}/${project.artifactId}.git</url>
 		<developerConnection>scm:git:git@${scm.host_}:${developer.id_}/${project.artifactId}.git</developerConnection>
-		<tag>HEAD</tag>
 	</scm>
     
     <build>
