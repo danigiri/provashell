@@ -18,11 +18,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.calidos.dani</groupId>
 	<artifactId>provashell</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<packaging>rpm</packaging>
 
 	<name>Shell unit testing for the masses</name>
-	<description>Downloads zookeper and compiles under 'mon' supervisor
+	<description>A minimalistic and Apache 2.0 licensed (bash) shell unit testing library
 	</description>
     <inceptionYear>2014</inceptionYear>
     <url>http://dani.calidos.com</url>
@@ -31,7 +31,16 @@
     	<install.prefix_>/opt</install.prefix_>
 		<install.folder_>${install.prefix_}/provashell</install.folder_>
 		<test.pattern_>${project.artifactId}*-test.sh</test.pattern_>
+		<developer.id_>danigiri</developer.id_>
+		<scm.host_>github.com</scm.host_>
 	</properties>
+    
+   	<scm>
+		<connection>scm:git:git@${scm.host_}:${developer.id_}/${project.artifactId}.git</connection>
+		<url>scm:git:git@${scm.host_}:${developer.id_}/${project.artifactId}.git</url>
+		<developerConnection>scm:git:git@${scm.host_}:${developer.id_}/${project.artifactId}.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
     
     <build>
     
@@ -104,7 +113,7 @@
                     </defineStatements>
 
                     <defaultDirmode>755</defaultDirmode>
-                    <defaultFilemode>755</defaultFilemode>
+                    <defaultFilemode>644</defaultFilemode>
                     <defaultUsername>root</defaultUsername>
                     <defaultGroupname>root</defaultGroupname>
                                                    	
@@ -135,9 +144,21 @@
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
 			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
-			<comments>Copyright (C) 2014 Daniel Giribet (packaging)</comments>
+			<comments>Copyright (C) 2014 Daniel Giribet</comments>
 		</license>
-	</licenses>	
-		    
-</project>
-		    
+	</licenses>
+	
+	<developers>
+		<developer>
+			<id>${developer.id_}</id>
+			<name>Daniel Giribet</name>
+			<email>dani AT calidos DOT cat</email>
+			<url>http//dani.calidos.com</url>
+			<roles>
+				<role>creator</role>
+				<role>developer</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
+</project>  

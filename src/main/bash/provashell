@@ -61,6 +61,7 @@ findAnnotatedFunctions_() {
 	grep -v -- '--'| \
 	sed -E 's/\s*\(\)\s*//g' | sed 's/{//g' | \
 	sed -E 's/function[\ \t]//g'
+	
 }
 
 
@@ -128,6 +129,9 @@ stopSkippingTests() {
 
 
 ################################################################################ 
+
+
+################################################################################ 
 assertTrue() {
 	
 	local test_=''
@@ -142,7 +146,7 @@ assertTrue() {
 	else
 		echoerr_ "assertTrue: Wrong number of parameters '$#'"
 		return $ERR_PARAMS_
-	fi
+	fi	
 	
 	assert_ 'true' "$test_"
 	local result_=$?
