@@ -23,7 +23,13 @@ ERR_TESTNOTVALID_=5
 
 #### ENVIRONMENT VARIABLES ####
 
-SKIPPING_=
+# PS_SKIP_ALL: provashell does not run any tests and only loads its functions
+# PS_VERBOSE: display diagnostics stuff
+# PS_QUIET: be absolutely quiet
+
+#PS_SKIP_ALL=
+#PS_VERBOSE=
+#PS_QUIET=
 
 
 # INTERNAL HELPER FUNCTIONS
@@ -31,6 +37,10 @@ SKIPPING_=
 ################################################################################
 # Display message on STDERR
 echoerr_() { echo "$@" 1>&2; }
+
+
+################################################################################
+echoVerbose_() { [[ -n "$PS_VERBOSE" ]] && echo "$@"; }
 
 
 ################################################################################
@@ -57,9 +67,9 @@ findAnnotatedFunctions_() {
 ################################################################################
 assert_() {
 
-
-	#TODO: handle skipping
-	[ -n "$SKIPPING_" ] && return 0
+	# bookeeping: skipping asserts and assert counting
+	[ -n "$SKIPPING__" ] && return 0
+	((asserts_++))
 
 	local expectingTrue_="$1"
 	local test_="$2"
@@ -222,45 +232,46 @@ assertEquals() {
 }
 
 
+if [ -z "$PS_SKIP_ALL" ]; then
+
+
 #### TESTING BEHAVIOUR ITSELF ####
 
-# -n: provashell does not run any tests and only loads its functions
-doNotRunTests_=
-
-while getopts "n" opt; do
-  case $opt in
-    d)
-      doNotRunTests_=1
-      ;;
-    \?)
-      echoerr_ "Provashell unrecognized option: -$OPTARG"
-      ;;
-  esac
-done
-
-[ -n "$doNotRunTests_" ] && exit 0
-
-
 script_="$0"
+tests_=0
+totalTests_=$(findAnnotatedFunctions_ "$script_" '@Test' | wc -l | tr -d ' ')
+asserts_=0
+
+echoVerbose_ "provashell: Found $totalTests_ tests"
 
 # before script setup (if declared)
 start_=$(findAnnotatedFunctions_ "$script_" '@BeforeScript')
 [ -n "$start_" ] && $start_
 
-# establish individual test setup and teardown functions (if declared=
+# establish individual test setup and teardown functions (if declared)
 
 before_=$(findAnnotatedFunctions_ "$script_" '@Before')
 after_=$(findAnnotatedFunctions_ "$script_" '@After')
 
 # run the tests themselves, yay!
-findAnnotatedFunctions_ "$script_" '@Test' | \
-while read t; do
+# we are using for with an inline list instead of a pipe and a while read
+# because we do not want the test to run in a pipeline subprocess, which
+# allows us to increment variables and the like inside the loop
+for t in `findAnnotatedFunctions_ "$script_" '@Test'`; do
 	[ -n "$before_" ] && $before_
-		$t
+	echoVerbose_ "provashell: Running test '$t'"
+	$t
+	((tests_++))
 	[ -n "$after_" ] && $after_
 done
-
 
 # after script setup (if declared)
  end_=$(findAnnotatedFunctions_ "$script_" '@AfterScript')
 [ -n "$end_" ] && $end_
+
+echoVerbose_ "provashell: checked $asserts_ assertions"
+[ -z "$PS_QUIET" ] && echo "provashell: Ran $tests_ of $totalTests_ tests"
+export PS_ASSERTS="$asserts_"
+export PS_TESTS="$tests_"
+
+fi

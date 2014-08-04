@@ -69,6 +69,7 @@
 									<argument>
 										for f in ${test.pattern_}; do 
 											chmod -v +x "$f";
+											echo "Running **** '$f' ****"
 											./"$f"; 
 										done
 									</argument>

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # load without running any tests
-. classes/provashell.fun -n
+PS_SKIP_ALL=1 . classes/provashell
 
 OK_=0
 ERR_=1
