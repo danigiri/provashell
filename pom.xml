@@ -22,7 +22,7 @@
 	<packaging>rpm</packaging>
 
 	<name>Shell unit testing for the masses</name>
-	<description>A minimalistic and Apache 2.0 licensed (bash) shell unit testing library
+	<description>A minimalistic Apache-2.0 licensed (bash) shell unit testing library
 	</description>
     <inceptionYear>2014</inceptionYear>
     <url>http://dani.calidos.com</url>
