@@ -1,4 +1,4 @@
 provashell
 ==========
 
-Unit testing for the shell masses
+Shell unit testing for the masses
