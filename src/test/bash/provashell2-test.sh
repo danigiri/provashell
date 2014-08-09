@@ -27,7 +27,6 @@ foo1() {
 }
 
 fooNotRunning() {
-	echo foo2
 	assertTrue '[ 0 -eq 0 ]'
 }
 
@@ -62,5 +61,5 @@ echo '----------- Running tests functions ----------'
 
 . classes/provashell
 
-assertEq 'Got wrong number of tests ($PS_TESTS instead of 5)' 5 $PS_TESTS
-assertEq 'Got wrong number of asserts ($PS_ASSERTS instead of 4)' 4 $PS_ASSERTS
+assertEq "Got wrong number of tests ($PS_TESTS instead of 5)" 5 $PS_TESTS
+assertEq "Got wrong number of asserts ($PS_ASSERTS instead of 4)" 4 $PS_ASSERTS
