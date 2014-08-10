@@ -70,7 +70,7 @@ mvn package
 find target/rpm -name '*.rpm' -exec rpm -ilv -qp '{}' \;
 ```
 This method requires Java and (Apache Maven!)[http://maven.apache.org] to be 
-installed, as well as the `rpmbuild` tool (can be found in the `rpm-build` 
+installed, as well as the `rpmbuild` tool (which can be found in the `rpm-build` 
 package on CentOS).
 
 
@@ -103,7 +103,7 @@ A sample test looks like this:
 
 	#@After
 	tearDown() {
-		echo 'Runs after each tes'
+		echo 'Runs after each test'
 	}
 
 	#@Test
@@ -125,35 +125,102 @@ A sample test looks like this:
 The following annotations are defined:
 
 	#@BeforeScript
-	Runs the function once before any tests are run
+Runs the function once before any tests are run
 	
 	#@AfterScript
-	Runs the function once after all tests are run
+Runs the function once after all tests are run
 	
 	#@Before
-	Runs the function before each tests is run
+Runs the function before each tests is run
 	
 	#@After
-	Runs the function after each tests is run
+Runs the function after each tests is run
 	 
 	#@Test
-	Identifies the function as a test and it is run once by provashell, note 
-	that test order in the script is respected 	
+Identifies the function as a test and it is run once by provashell, note that 
+test order in the script is respected 	
 
 The following assertions are defined:
 
-	assertTrue ['message'] <'test expected to be true'>
+	assertTrue ['message'] <'expression expected to be true'>
 	
-	assertFalse ['message'] <'test expecte to be false'>
+Checks if the expression evaluates to true, otherwise it prints `message` to 
+STDERR (or a default one if no message is passed). The expression must be a 
+shell test one, usually `test`, `[ ]`, extended test `[[ ]]` in the case of bash
+or testable constructs such as `(( ))` or `let`. Therefore, calls such as
+`assertTrue "[ -e $file ]"` or `assertTrue 'Message' "test -z '$v'"` are valid
+whereas `assertTrue '0 -eq 0' is not. The message cannot be empty so if none is
+desired just do not pass any message argument and the default will be used.
+	
+	assertFalse ['message'] <'expression expected to be false'>
+	
+Equivalent to `assertTrue` but expecting the expression to evaluate to false.
 	
 	asserEq ['message'] <expected number> <actual number>
 	
+Assertion testing the equality of two numbers using the `-eq` test.
+	
 	assertEquals ['message'] <'expected string'> <'actual string'>
 	
+Asserting testing the equality of two strings using `==`
+	
+The following methods are also available:
+
+	startSkippingTests
+	
+Prevents assertions to be executed. This means that the test expressions 
+themselves will not be evaluated at all.
+
+	stopSkippingTests
+
+Behaviour is back to assertions being executed.
+
+
+### Environment variables
+
+Two environment variables modify the behaviour of _provashell_ if they are 
+defined with any value
+
+	export PS_VERBOSE=1
+
+Adds extra diagnostics messages to output. For instance it outputs which
+assertions are actually being executed.
+
+	export PS_QUIET=1
+
+Supresses _provashell_'s normal output (for now the end message stating how 
+many tests have been ran).
+
+
+### Function return codes
+
+	0
+	
+Assertion evaluated as expected (ie. the expression was expected to be true and
+it was).
+
+	1
+
+General problem with the test.
+
+	3
+
+Assertion did not evaluate as expected (ie. the expression was expected to be 
+true and it evaluated to false).
+
+	4
+
+Incorrect number of parameters passed to the assertion.
+
+	5
+
+The expression passed to the assertion was not a valid expression.
+
 
 ## Contributing
 
-HOW TO CONTRIBUTE
+Absolutely welcome! Just do a pull request :)
+
 
 ## License
 
