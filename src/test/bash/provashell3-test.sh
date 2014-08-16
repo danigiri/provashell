@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #@BeforeScript
 init() {
@@ -17,7 +17,7 @@ setUp() {
 
 #@After
 tearDown() {
-	echo 'Runs after each tes'
+	echo 'Runs after each test'
 }
 
 #@Test

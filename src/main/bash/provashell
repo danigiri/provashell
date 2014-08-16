@@ -16,6 +16,7 @@
 
 # CONSTANTS
 PASSED_=0
+OK_=0
 ERR_=1
 NOTPASSED_=3
 ERR_PARAMS_=4
@@ -25,7 +26,7 @@ ERR_TESTNOTVALID_=5
 
 # PS_SKIP_ALL: provashell does not run any tests and only loads its functions
 # PS_VERBOSE: display diagnostics stuff
-# PS_QUIET: be absolutely quiet
+# PS_QUIET: be absolutely quiet, overrides verbose
 
 #PS_SKIP_ALL=
 #PS_VERBOSE=
@@ -34,22 +35,21 @@ ERR_TESTNOTVALID_=5
 
 # INTERNAL HELPER FUNCTIONS
 
-################################################################################
+# ______________________________________________________________________________
 # Display message on STDERR
 echoerr_() { echo "$@" 1>&2; }
 
 
-################################################################################
-echoVerbose_() { [[ -n "$PS_VERBOSE" ]] && echo "$@"; }
+# ______________________________________________________________________________
+echoVerbose_() { [ -n "$PS_VERBOSE" ] && [ -z "$PS_QUIET" ] echo "$@"; }
 
 
-################################################################################
+# ______________________________________________________________________________
 # echo the annotated <file> <annotation name>
 findAnnotatedFunctions_() {
 
 	local file_="$1"
 	local annotation_="#$2$"
-	local functions_=()
 
 	# list all functions, 
 	# remove the annotations themselves, 
@@ -65,12 +65,12 @@ findAnnotatedFunctions_() {
 }
 
 
-################################################################################
+#_________________________________________________
 assert_() {
 
 	# bookeeping: skipping asserts and assert counting
 	[ -n "$SKIPPING__" ] && return 0
-	((asserts_++))
+	asserts_=$(($asserts_+1))
 
 	local expectingTrue_="$1"
 	local test_="$2"
@@ -97,10 +97,10 @@ assert_() {
 }
 
 
-################################################################################
+#_________________________________________________
 printTestResults_() {
 
-	local result_=$1
+	local result_="$1"
 	local testName_="$2"
 	local message_="$3"
 	if [ $result_ -eq $ERR_TESTNOTVALID_ ]; then
@@ -114,42 +114,91 @@ printTestResults_() {
 }
 
 
+#_________________________________________________ 
+# <message or test> <test or nothing> <test name> <default message>
+# Options:
+# a) '<message>' '<test>' 	--> which means a complete call or
+# b) '<test>' '' 			--> which means default message
+# c) '' '' 					--> we got no arguments from original caller or empty test 
+checkMsgAndExpr_() {
+
+	message_="$1"
+	test_="$2"
+	local testName_="$3"
+	local defaultMessage_="$4"
+	
+	if [ -z "$test_" ]; then
+		# no message was passed, therefore we go for default message
+		if [ -z "$message_" ]; then
+			# zero args or empty test
+			echoerr_ "$testName_: Wrong parameters passed to test"
+			return $ERR_PARAMS_
+		fi
+		test_="$message_"
+		message_="$defaultMessage_"
+	else
+		# a message was passed, we go for a full call, no need to do anything
+		:
+	fi
+	return $OK_
+}
+
+
+#_________________________________________________ 
+checkMsgAndBinaryExpr_() {
+# <message or op1> <op1 or op2> <op2 or nothing> <num params> <operator> <test name> <default message>
+	
+	message_="$1"
+	local op1_="$2"
+	local op2_="$3"
+	local numParams_="$4"
+	local operator_="$5"
+	local testName_="$6"
+	local defaultMessage_="$7"
+
+	if [ "$numParams_" -eq 3 ]; then
+		# full call with user supplied message, no need to do anything
+		:
+	elif [ "$numParams_" -eq 2 ]; then
+		# default message so what we got on $message_ was actually op1 and $op1 was actually op2
+		op2_="$op1_"
+		op1_="$message_"
+		message_="$defaultMessage_"
+	else
+		echoerr_ "$testName_: Wrong number of parameters passed to test: '$numParams_'"
+		return $ERR_PARAMS_	
+	fi
+	test_="[ '$op1_' $operator_ '$op2_' ]"
+
+}
+
+
 # PUBLIC FUNCTIONS
 
-################################################################################ 
+#_________________________________________________ 
 startSkippingTests() {
 	SKIPPING__=1
 }
 
 
-################################################################################
+#_________________________________________________
 stopSkippingTests() {
 	SKIPPING__=
 }
 
 
-################################################################################ 
-
-
-################################################################################ 
+#_________________________________________________ 
 assertTrue() {
 	
 	local test_=''
 	local message_=''
 	
-	if [ $# -eq 1 ]; then
-		test_="$1"
-		message_="assertTrue failed: '$test_' evaluates to false"
-	elif [ $# -eq 2 ]; then
-		message_="$1"
-		test_="$2"
-	else
-		echoerr_ "assertTrue: Wrong number of parameters '$#'"
-		return $ERR_PARAMS_
-	fi	
+	checkMsgAndExpr_ "$1" "$2" 'assertTrue' "assertTrue failed: '$1' evaluates to false"
+	result_=$?
+	[ $result_ -ne $OK_ ] && return $result_
 	
 	assert_ 'true' "$test_"
-	local result_=$?
+	result_=$?
 	printTestResults_ $result_ 'assertTrue' "$message_"
 
 	return $result_
@@ -157,25 +206,18 @@ assertTrue() {
 }
 
 
-################################################################################ 
+#_________________________________________________ 
 assertFalse() {
 
 	local test_=''
 	local message_=''
 	
-	if [ $# -eq 1 ]; then
-		test_="$1"
-		message_="assertFalse failed: '$test_' evaluates to true"
-	elif [ $# -eq 2 ]; then
-		message_="$1"
-		test_="$2"
-	else
-		echoerr_ "assertFalse: Wrong number of parameters '$#'"
-		return $ERR_PARAMS_
-	fi
-	
-	assert_ 'false' "$test_"
+	checkMsgAndExpr_ "$1" "$2" 'assertFalse' "assertFalse failed: '$1' evaluates to true"
 	local result_=$?
+	[ $result_ -ne $OK_ ] && return $result_
+		
+	assert_ 'false' "$test_"
+	result_=$?
 	printTestResults_ $result_ 'assertFalse' "$message_"
 
 	return $result_
@@ -183,23 +225,16 @@ assertFalse() {
 }
 
 
-################################################################################ 
+#_________________________________________________ 
 # expected actual [ message ]
 assertEq() {
 
 	local test_=''
 	local message_=''
 	
-	if [ $# -eq 2 ]; then
-		test_="[ $1 -eq $2 ]"
-		message_="assertEq failed: expecting $1 and got $2"
-	elif [ $# -eq 3 ]; then
-		message_="$1"
-		test_="[ $2 -eq $3 ]"
-	else
-		echoerr_ "assertEq: Wrong number of parameters '$#'"
-		return $ERR_PARAMS_
-	fi
+	checkMsgAndBinaryExpr_ "$1" "$2" "$3" $# '-eq' 'assertEquals' "assertEq failed: expecting $1 and got $2"
+	local result_=$?
+	[ $result_ -ne $OK_ ] && return $result_
 	
 	assert_ 'true' "$test_"
 	local result_=$?
@@ -210,30 +245,25 @@ assertEq() {
 }
 
 
-################################################################################ 
+# ______________________________________________________________________________
 assertEquals() {
 
 	local test_=''
 	local message_=''
 	
-	if [ $# -eq 2 ]; then
-		test_="[ '$1' == '$2' ]"
-		message_="assertEquals failed: expecting $1 and got $2"
-	elif [ $# -eq 3 ]; then
-		message_="$1"
-		test_="[ '$2' == '$3' ]"
-	else
-		echoerr_ "assertEquals: Wrong number of parameters '$#'"
-		return $ERR_PARAMS_
-	fi
-	
-	assert_ 'true' "$test_"
+	checkMsgAndBinaryExpr_ "$1" "$2" "$3" $# '=' 'assertEquals' "assertEquals failed: expecting $1 and got $2"
 	local result_=$?
+	[ $result_ -ne $OK_ ] && return $result_
+		
+	assert_ 'true' "$test_"
+	result_=$?
 	printTestResults_ $result_ 'assertEquals' "$message_"
 
 	return $result_
 	
 }
+
+
 
 
 if [ -z "$PS_SKIP_ALL" ]; then
@@ -265,7 +295,7 @@ for t in `findAnnotatedFunctions_ "$script_" '@Test'`; do
 	[ -n "$before_" ] && $before_
 	echoVerbose_ "provashell: Running test '$t'"
 	$t
-	((tests_++))
+	tests_=$(($tests_+1))
 	[ -n "$after_" ] && $after_
 done
 
