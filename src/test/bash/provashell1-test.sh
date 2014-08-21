@@ -76,6 +76,30 @@ m_=$(assertEq 'message' 0 1)
 [ "$m_" != 'message' ] && echo 'assertEq two different numbers should fail with message' && exit 1
 
 
+echo '------------ Testing assertNe ------------'
+
+assertNe &>/dev/null
+[ $? -ne $PARAMS_ ] && echo 'assertNe without params should fail' && exit 1 
+
+assertNe 0 &>/dev/null
+[ $? -ne $PARAMS_ ] && echo 'assertNe with only one param should fail' && exit 1 
+
+assertNe 1 01 &>/dev/null
+[ $? -ne $FAIL_ ] && echo 'assertNe two identical numbers should fail' && exit 1
+
+assertNe 0 0 &>/dev/null
+[ $? -ne $FAIL_ ] && echo 'assertNe two identical numbers should fail' && exit 1
+
+assertNe 0 1
+[ $? -ne $OK_ ] && echo 'assertNe two different numbers should not fail' && exit 1
+
+assertNe 'message' 0 1
+[ $? -ne $OK_ ] && echo 'assertNe two different numbers with a message should not fail' && exit 1
+
+m_=$(assertNe 'message' 0 0)
+[ "$m_" != 'message' ] && echo 'assertNe two identical numbers should fail with message' && exit 1
+
+
 echo '------------ Testing assertEquals ------------'
 
 assertEquals &>/dev/null

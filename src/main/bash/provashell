@@ -65,7 +65,7 @@ findAnnotatedFunctions_() {
 }
 
 
-#_________________________________________________
+# ______________________________________________________________________________  
 assert_() {
 
 	# bookeeping: skipping asserts and assert counting
@@ -97,7 +97,7 @@ assert_() {
 }
 
 
-#_________________________________________________
+# ______________________________________________________________________________  
 printTestResults_() {
 
 	local result_="$1"
@@ -114,7 +114,7 @@ printTestResults_() {
 }
 
 
-#_________________________________________________ 
+# ______________________________________________________________________________  
 # <message or test> <test or nothing> <test name> <default message>
 # Options:
 # a) '<message>' '<test>' 	--> which means a complete call or
@@ -144,8 +144,8 @@ checkMsgAndExpr_() {
 }
 
 
-#_________________________________________________ 
-checkMsgAndBinaryExpr_() {
+# ______________________________________________________________________________  
+testBinary_() {
 # <message or op1> <op1 or op2> <op2 or nothing> <num params> <operator> <test name> <default message>
 	
 	message_="$1"
@@ -170,24 +170,30 @@ checkMsgAndBinaryExpr_() {
 	fi
 	test_="[ '$op1_' $operator_ '$op2_' ]"
 
+	assert_ 'true' "$test_"
+	local result_=$?
+	printTestResults_ $result_ "$testName_" "$message_"
+
+	return $result_
+	
 }
 
 
 # PUBLIC FUNCTIONS
 
-#_________________________________________________ 
+# ______________________________________________________________________________  
 startSkippingTests() {
 	SKIPPING__=1
 }
 
 
-#_________________________________________________
+# ______________________________________________________________________________  
 stopSkippingTests() {
 	SKIPPING__=
 }
 
 
-#_________________________________________________ 
+# ______________________________________________________________________________  
 assertTrue() {
 	
 	local test_=''
@@ -206,7 +212,7 @@ assertTrue() {
 }
 
 
-#_________________________________________________ 
+# ______________________________________________________________________________  
 assertFalse() {
 
 	local test_=''
@@ -225,42 +231,24 @@ assertFalse() {
 }
 
 
-#_________________________________________________ 
+# ______________________________________________________________________________  
 # expected actual [ message ]
 assertEq() {
-
-	local test_=''
-	local message_=''
-	
-	checkMsgAndBinaryExpr_ "$1" "$2" "$3" $# '-eq' 'assertEquals' "assertEq failed: expecting $1 and got $2"
-	local result_=$?
-	[ $result_ -ne $OK_ ] && return $result_
-	
-	assert_ 'true' "$test_"
-	local result_=$?
-	printTestResults_ $result_ 'assertEq' "$message_"
-
-	return $result_
-	
+	testBinary_ "$1" "$2" "$3" $# '-eq' 'assertEquals' "assertEq failed: expecting $1 and got $2"
 }
+
+
+#_________________________________________________ 
+# not expected actual [ message ]
+assertNe() {
+	testBinary_ "$1" "$2" "$3" $# '-ne' 'assertNe' "assertNe failed: not expecting $1 and got that value"
+}
+
 
 
 # ______________________________________________________________________________
 assertEquals() {
-
-	local test_=''
-	local message_=''
-	
-	checkMsgAndBinaryExpr_ "$1" "$2" "$3" $# '=' 'assertEquals' "assertEquals failed: expecting $1 and got $2"
-	local result_=$?
-	[ $result_ -ne $OK_ ] && return $result_
-		
-	assert_ 'true' "$test_"
-	result_=$?
-	printTestResults_ $result_ 'assertEquals' "$message_"
-
-	return $result_
-	
+	testBinary_ "$1" "$2" "$3" $# '=' 'assertEquals' "assertEquals failed: expecting $1 and got $2"
 }
 
 
