@@ -115,17 +115,18 @@ printTestResults_() {
 
 
 # ______________________________________________________________________________  
-# <message or test> <test or nothing> <test name> <default message>
+# <message or test> <test or nothing> <test name> <true or false> <default message>
 # Options:
 # a) '<message>' '<test>' 	--> which means a complete call or
 # b) '<test>' '' 			--> which means default message
 # c) '' '' 					--> we got no arguments from original caller or empty test 
-checkMsgAndExpr_() {
+testUnary_() {
 
-	message_="$1"
-	test_="$2"
-	local testName_="$3"
-	local defaultMessage_="$4"
+	local message_="$1"
+	local test_="$2"
+	local expectTrue_="$3"
+	local testName_="$4"
+	local defaultMessage_="$5"
 	
 	if [ -z "$test_" ]; then
 		# no message was passed, therefore we go for default message
@@ -140,7 +141,13 @@ checkMsgAndExpr_() {
 		# a message was passed, we go for a full call, no need to do anything
 		:
 	fi
-	return $OK_
+
+	assert_ "$expectTrue_" "$test_"
+	local result_=$?
+	printTestResults_ $result_ "$testName_" "$message_"
+
+	return $result_
+
 }
 
 
@@ -148,7 +155,7 @@ checkMsgAndExpr_() {
 testBinary_() {
 # <message or op1> <op1 or op2> <op2 or nothing> <num params> <operator> <test name> <default message>
 	
-	message_="$1"
+	local message_="$1"
 	local op1_="$2"
 	local op2_="$3"
 	local numParams_="$4"
@@ -195,39 +202,13 @@ stopSkippingTests() {
 
 # ______________________________________________________________________________  
 assertTrue() {
-	
-	local test_=''
-	local message_=''
-	
-	checkMsgAndExpr_ "$1" "$2" 'assertTrue' "assertTrue failed: '$1' evaluates to false"
-	result_=$?
-	[ $result_ -ne $OK_ ] && return $result_
-	
-	assert_ 'true' "$test_"
-	result_=$?
-	printTestResults_ $result_ 'assertTrue' "$message_"
-
-	return $result_
-	
+	testUnary_ "$1" "$2" 'true' 'assertTrue' "assertTrue failed: '$1' evaluates to false"
 }
 
 
 # ______________________________________________________________________________  
 assertFalse() {
-
-	local test_=''
-	local message_=''
-	
-	checkMsgAndExpr_ "$1" "$2" 'assertFalse' "assertFalse failed: '$1' evaluates to true"
-	local result_=$?
-	[ $result_ -ne $OK_ ] && return $result_
-		
-	assert_ 'false' "$test_"
-	result_=$?
-	printTestResults_ $result_ 'assertFalse' "$message_"
-
-	return $result_
-	
+	testUnary_ "$1" "$2" 'false' 'assertFalse' "assertFalse failed: '$1' evaluates to true"
 }
 
 
