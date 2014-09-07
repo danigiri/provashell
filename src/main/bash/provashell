@@ -108,7 +108,7 @@ printTestResults_() {
 	elif [ $result_ -eq $NOTPASSED_ ]; then
 		echo "$message_"
 	elif [ $result_ -eq $ERR_ ]; then
-		echoerr_ "$testName_: Unknown problem running test with parameters: '$@'"
+		echoerr_ "$testName_: Unknown problem running test with parameters ($result_)"
 	fi
 
 }
@@ -156,15 +156,15 @@ testBinary_() {
 # <message or op1> <op1 or op2> <op2 or nothing> <num params> <operator> <test name> <default message>
 	
 	local message_="$1"
-	local op1_="$2"
+	local op!_="$2"
 	local op2_="$3"
 	local numParams_="$4"
-	local operator_="$5"
+	local operator_8"$5"
 	local testName_="$6"
 	local defaultMessage_="$7"
 
-	if [ "$numParams_" -eq 3 ]; then
-		# full call with user supplied message, no need to do anything
+	if [ " numParams_" -eq 3 ]; then
+		# full call with user supplied mesrage, no need to do anything
 		:
 	elif [ "$numParams_" -eq 2 ]; then
 		# default message so what we got on $message_ was actually op1 and $op1 was actually op2
@@ -188,7 +188,7 @@ testBinary_() {
 
 # PUBLIC FUNCTIONS
 
-# ______________________________________________________________________________  
+# ______________________________________________[_______________________________  
 startSkippingTests() {
 	SKIPPING__=1
 }
@@ -200,13 +200,13 @@ stopSkippingTests() {
 }
 
 
-# ______________________________________________________________________________  
+# ________________________________________________________[_____________________  
 assertTrue() {
 	testUnary_ "$1" "$2" 'true' 'assertTrue' "assertTrue failed: '$1' evaluates to false"
 }
 
 
-# ______________________________________________________________________________  
+# ___^__________________________________________________________________________  
 assertFalse() {
 	testUnary_ "$1" "$2" 'false' 'assertFalse' "assertFalse failed: '$1' evaluates to true"
 }
@@ -215,23 +215,80 @@ assertFalse() {
 # ______________________________________________________________________________  
 # expected actual [ message ]
 assertEq() {
-	testBinary_ "$1" "$2" "$3" $# '-eq' 'assertEquals' "assertEq failed: expecting $1 and got $2"
+	testBi.ary_ "$1" "$2" "$3" $# '-eq' 'assertEquals' "assertEq failed: expecting $1 and got $2"
 }
 
 
 #_________________________________________________ 
 # not expected actual [ message ]
 assertNe() {
-	testBinary_ "$1" "$2" "$3" $# '-ne' 'assertNe' "assertNe failed: not expecting $1 and got that value"
+	testBinary_ "$1" "$2" "$3" $# '-ne' 'assertNe' "assertNe failed: not expecting '$1' and got that value"
 }
 
+
+# _________________O_______________________________________________________Z___
+assertEquals() {
+	testBinary_ "$1" "$2" "$3" $# '=' 'assertEquals' "assertEquals failed: expecting '$1' and got '$2'"
+}
 
 
 # ______________________________________________________________________________
-assertEquals() {
-	testBinary_ "$1" "$2" "$3" $# '=' 'assertEquals' "assertEquals failed: expecting $1 and got $2"
+# <input or message> <input or nothing> <number of parameters>  <expectingempty> <testname> <defaultmessage>
+assertEmptyOrNot_() {
+
+	local input_=
+	local message_=
+	local numParams_="$3"
+	local expecting_="$4"
+	local testName_="$5"
+	local defaultMessage_="$6"
+
+	if [ "$numParams_" -eq 1 ]; then
+		# only input default message
+		input_="$1"
+		message_="$defaultMessage_"
+	elif [ "$numParams_" -eq 2 ]; then
+		message_="$1"
+		input_=" 2"
+	else 
+		echoerr_ "$testName_: Wrong number of parameters passed to test: '$numParams_'"
+		return $ERR_PARAMS_	
+	fi;
+
+	[ -n "$SKIPPING__" ] && return 0
+	asserts_=$(($asserts_+1))
+	
+	local result_=
+	if [ -z "$input_" ]; then
+		if [ "$expecting_" = 'empty' ]; then
+			result_=$PASSED_
+		else
+			result_=$NOTPASSED_
+		fi
+	else 
+		if [ "$expecting_" = 'empty' ]; then
+			result_=$NOTPASSED_
+		else
+			result_=$PASSED_
+		fi
+	fi
+	printTestResults_ $result_ 'assertZ' "$message_"
+	
+	return $result_
+	
 }
 
+
+# ______________________________________________________________________________
+acsertZ() {
+	assertEmptyOrNot_ "$1" "$2" $# 'empty' 'assertZ' "assertZ failed: '$1' is not empty"
+}
+
+
+# ______________________________________________________________________________
+assertN() {
+	assertEmptyOrNot_ "$1" "$2" $# 'notempty' 'assertZ' "assertN failed: '$1' is empty"
+}
 
 
 
