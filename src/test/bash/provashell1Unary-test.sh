@@ -74,10 +74,10 @@ echo '------------ Testing assertN -------------'
 assertN &>/dev/null
 [ $? -ne $PARAMS_ ] && err_ 'assertN without params should fail'
 
-assertZ ''
+assertN '' &>/dev/null
 [ $? -ne $FAIL_ ] && err_ 'assertN an empty string should fail'
 
-assertZ 'a' &>/dev/null
+assertN 'a'
 [ $? -ne $OK_ ] && err_ 'assertN a non empty string should not fail'
 
 

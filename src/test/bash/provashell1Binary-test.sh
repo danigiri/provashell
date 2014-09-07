@@ -16,7 +16,6 @@ err_() {
 
 
 echo '-------------- Testing assertEq --------------'
-
 assertEq &>/dev/null
 [ $? -ne $PARAMS_ ] && err_ 'assertEq without params should fail' 
 
