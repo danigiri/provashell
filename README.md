@@ -160,21 +160,39 @@ Equivalent to `assertTrue` but expecting the expression to evaluate to false.
 ####	asserEq ['message'] <expected number> <actual number>
 	
 Assertion testing the equality of two numbers using the `-eq` test.
+
+####	assertNe ['message'] <not expected number> <actual number>
 	
+Assertion testing the inequality of two numbers using the `-ne` test. Not 
+terribly useful in most tests but here we go.
+
 ####	assertEquals ['message'] <'expected string'> <'actual string'>
 	
-Asserting testing the equality of two strings using `=`
+Assertion testing the equality of two strings using `=`
+
+####	assertZ ['message'] <'string expected to be empty'>
 	
-The following methods are also available:
+Assertion checking if the input string is empty (using `-z`).
+
+####	assertN ['message'] <'string expected to be nonempty'>
+	
+Assertion checking if the input string is not empty (anything that gets `-z` to
+be false).
+	
+	
+	
+The following utility methods are also available:
 
 ####	startSkippingTests
 	
-Prevents assertions to be executed. This means that the test expressions 
-themselves will not be evaluated at all.
+Prevents assertions from being cheked. This means that the test expressions 
+themselves will not be evaluated at all. Input checking _will still be done_ so
+clear errors such as are not passing any input to tests are not masked by 
+skipping.
 
 ####	stopSkippingTests
 
-Behaviour is back to assertions being executed.
+Behaviour is back to assertions being checked.
 
 
 ### Environment variables
@@ -190,12 +208,12 @@ assertions are actually being executed.
 ####	export PS_QUIET=1
 
 Supresses _provashell_'s normal output (for now the end message stating how 
-many tests have been ran). Overrides `PS_VERBOSE`
+many tests have been ran). Overrides `PS_VERBOSE`.
 
 
 ### Assert function return codes
 
-The following codes are returned by the assertion functions:
+The following codes are returned by assertion functions:
 
 ####	0
 	
@@ -213,7 +231,8 @@ true and it evaluated to false).
 
 ####	4
 
-Incorrect number of parameters passed to the assertion.
+Incorrect number of parameters passed to the assertion (empty strings like `''`
+are considered correct input parameters).
 
 ####	5
 

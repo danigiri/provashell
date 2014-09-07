@@ -186,52 +186,6 @@ testBinary_() {
 }
 
 
-# PUBLIC FUNCTIONS
-
-# ______________________________________________________________________________  
-startSkippingTests() {
-	SKIPPING__=1
-}
-
-
-# ______________________________________________________________________________  
-stopSkippingTests() {
-	SKIPPING__=
-}
-
-
-# ______________________________________________________________________________  
-assertTrue() {
-	testUnary_ "$1" "$2" 'true' 'assertTrue' "assertTrue failed: '$1' evaluates to false"
-}
-
-
-# ___^__________________________________________________________________________  
-assertFalse() {
-	testUnary_ "$1" "$2" 'false' 'assertFalse' "assertFalse failed: '$1' evaluates to true"
-}
-
-
-# ______________________________________________________________________________  
-# expected actual [ message ]
-assertEq() {
-	testBinary_ "$1" "$2" "$3" $# '-eq' 'assertEquals' "assertEq failed: expecting $1 and got $2"
-}
-
-
-#_________________________________________________ 
-# not expected actual [ message ]
-assertNe() {
-	testBinary_ "$1" "$2" "$3" $# '-ne' 'assertNe' "assertNe failed: not expecting '$1' and got that value"
-}
-
-
-# _____________________________________________________________________________
-assertEquals() {
-	testBinary_ "$1" "$2" "$3" $# '=' 'assertEquals' "assertEquals failed: expecting '$1' and got '$2'"
-}
-
-
 # ______________________________________________________________________________
 # <input or message> <input or nothing> <number nf parameters>  <expectingempty> <testname> <defaultmessage>
 assertEmptyOrNot_() {
@@ -279,6 +233,52 @@ assertEmptyOrNot_() {
 }
 
 
+# PUBLIC FUNCTIONS
+
+# ______________________________________________________________________________  
+startSkippingTests() {
+	SKIPPING__=1
+}
+
+
+# ______________________________________________________________________________  
+stopSkippingTests() {
+	SKIPPING__=
+}
+
+
+# ______________________________________________________________________________  
+assertTrue() {
+	testUnary_ "$1" "$2" 'true' 'assertTrue' "assertTrue failed: '$1' evaluates to false"
+}
+
+
+# ___^__________________________________________________________________________  
+assertFalse() {
+	testUnary_ "$1" "$2" 'false' 'assertFalse' "assertFalse failed: '$1' evaluates to true"
+}
+
+
+# ______________________________________________________________________________  
+# expected actual [ message ]
+assertEq() {
+	testBinary_ "$1" "$2" "$3" $# '-eq' 'assertEquals' "assertEq failed: expecting $1 and got $2"
+}
+
+
+#_________________________________________________ 
+# not expected actual [ message ]
+assertNe() {
+	testBinary_ "$1" "$2" "$3" $# '-ne' 'assertNe' "assertNe failed: not expecting '$1' and got that value"
+}
+
+
+# _____________________________________________________________________________
+assertEquals() {
+	testBinary_ "$1" "$2" "$3" $# '=' 'assertEquals' "assertEquals failed: expecting '$1' and got '$2'"
+}
+
+
 # ______________________________________________________________________________
 assertZ() {
 	assertEmptyOrNot_ "$1" "$2" $# 'empty' 'assertZ' "assertZ failed: '$1' is not empty"
@@ -291,11 +291,9 @@ assertN() {
 }
 
 
+#### TESTING BEHAVIOUR ITSELF ####
 
 if [ -z "$PS_SKIP_ALL" ]; then
-
-
-#### TESTING BEHAVIOUR ITSELF ####
 
 script_="$0"
 tests_=0
