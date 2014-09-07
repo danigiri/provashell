@@ -1,6 +1,6 @@
 ## provashell
 
-### Bash (and shell) unit testing for the masses_
+### Bash (and shell) unit testing for the masses
 
 _provashell_ is a simple bash unit testing library that employs annotations and
 is completely self-contained on one file. It should work on most if not all
@@ -12,7 +12,7 @@ POSIX shells as  bash-specific functionality has been avoided.
 Usage is relatively straightfoward (using master version):
 
 ```Shell
-curl -sO 'https://raw.githubusercontent.com/danigiri/provashell/master/src/main/bash/provashell'
+curl -sO 'https://raw.githubusercontent.com/danigiri/provashell/provashell-1.0.0/src/main/bash/provashell'
 cat > test.sh <<EOF
 #!/bin/bash
 #@Test
@@ -45,7 +45,7 @@ There are three ways to get the script:
 
 Downloading the script itself is enough as _provashell_ has no dependencies.
 ```Shell
-curl -O 'https://raw.githubusercontent.com/danigiri/provashell/master/src/main/bash/provashell'
+curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-1.0.0/src/main/bash/provashell'
 ```
 
 ### Using git
@@ -58,6 +58,9 @@ git clone https://github.com/danigiri/provashell.git
 ls -l src/main/bash/provashell
 ```
 
+You can work on the `master` itself or pick the release of your choosing with
+`git tag -l` 
+
 ### Building a deployable rpm using Maven
 
 This runs _provashell_'s tests and creates a rpm that that installs the script 
@@ -65,6 +68,7 @@ on `/opt/provashell/provashell` though the RPM itself is relocatable. The rpm
 file can be found at `target/rpm/provashell/RPMS/noarch/provashell`. 
 To just run the tests and not build the RPM do `mvn test`.
 
+Example of building `master`:
 ```Shell
 git clone https://github.com/danigiri/provashell.git
 mvn package
@@ -73,6 +77,7 @@ find target/rpm -name '*.rpm' -exec rpm -ilv -qp '{}' \;
 This method requires Java and (Apache Maven!)[http://maven.apache.org] to be 
 installed, as well as the `rpmbuild` tool (which can be found in the `rpm-build` 
 package on CentOS or similar packages in other distributions).
+
 
 
 ## Usage
