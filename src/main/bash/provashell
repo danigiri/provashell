@@ -65,7 +65,7 @@ findAnnotatedFunctions_() {
 }
 
 
-#_________________________________________________
+# ______________________________________________________________________________  
 assert_() {
 
 	# bookeeping: skipping asserts and assert counting
@@ -97,7 +97,7 @@ assert_() {
 }
 
 
-#_________________________________________________
+# ______________________________________________________________________________  
 printTestResults_() {
 
 	local result_="$1"
@@ -108,24 +108,25 @@ printTestResults_() {
 	elif [ $result_ -eq $NOTPASSED_ ]; then
 		echo "$message_"
 	elif [ $result_ -eq $ERR_ ]; then
-		echoerr_ "$testName_: Unknown problem running test with parameters: '$@'"
+		echoerr_ "$testName_: Unknown problem running test with parameters ($result_)"
 	fi
 
 }
 
 
-#_________________________________________________ 
-# <message or test> <test or nothing> <test name> <default message>
+# ______________________________________________________________________________  
+# <message or test> <test or nothing> <test name> <true or false> <default message>
 # Options:
 # a) '<message>' '<test>' 	--> which means a complete call or
 # b) '<test>' '' 			--> which means default message
 # c) '' '' 					--> we got no arguments from original caller or empty test 
-checkMsgAndExpr_() {
+testUnary_() {
 
-	message_="$1"
-	test_="$2"
-	local testName_="$3"
-	local defaultMessage_="$4"
+	local message_="$1"
+	local test_="$2"
+	local expectTrue_="$3"
+	local testName_="$4"
+	local defaultMessage_="$5"
 	
 	if [ -z "$test_" ]; then
 		# no message was passed, therefore we go for default message
@@ -140,15 +141,21 @@ checkMsgAndExpr_() {
 		# a message was passed, we go for a full call, no need to do anything
 		:
 	fi
-	return $OK_
+
+	assert_ "$expectTrue_" "$test_"
+	local result_=$?
+	printTestResults_ $result_ "$testName_" "$message_"
+
+	return $result_
+
 }
 
 
-#_________________________________________________ 
-checkMsgAndBinaryExpr_() {
+# ______________________________________________________________________________  
+testBinary_() {
 # <message or op1> <op1 or op2> <op2 or nothing> <num params> <operator> <test name> <default message>
 	
-	message_="$1"
+	local message_="$1"
 	local op1_="$2"
 	local op2_="$3"
 	local numParams_="$4"
@@ -170,75 +177,9 @@ checkMsgAndBinaryExpr_() {
 	fi
 	test_="[ '$op1_' $operator_ '$op2_' ]"
 
-}
-
-
-# PUBLIC FUNCTIONS
-
-#_________________________________________________ 
-startSkippingTests() {
-	SKIPPING__=1
-}
-
-
-#_________________________________________________
-stopSkippingTests() {
-	SKIPPING__=
-}
-
-
-#_________________________________________________ 
-assertTrue() {
-	
-	local test_=''
-	local message_=''
-	
-	checkMsgAndExpr_ "$1" "$2" 'assertTrue' "assertTrue failed: '$1' evaluates to false"
-	result_=$?
-	[ $result_ -ne $OK_ ] && return $result_
-	
-	assert_ 'true' "$test_"
-	result_=$?
-	printTestResults_ $result_ 'assertTrue' "$message_"
-
-	return $result_
-	
-}
-
-
-#_________________________________________________ 
-assertFalse() {
-
-	local test_=''
-	local message_=''
-	
-	checkMsgAndExpr_ "$1" "$2" 'assertFalse' "assertFalse failed: '$1' evaluates to true"
-	local result_=$?
-	[ $result_ -ne $OK_ ] && return $result_
-		
-	assert_ 'false' "$test_"
-	result_=$?
-	printTestResults_ $result_ 'assertFalse' "$message_"
-
-	return $result_
-	
-}
-
-
-#_________________________________________________ 
-# expected actual [ message ]
-assertEq() {
-
-	local test_=''
-	local message_=''
-	
-	checkMsgAndBinaryExpr_ "$1" "$2" "$3" $# '-eq' 'assertEquals' "assertEq failed: expecting $1 and got $2"
-	local result_=$?
-	[ $result_ -ne $OK_ ] && return $result_
-	
 	assert_ 'true' "$test_"
 	local result_=$?
-	printTestResults_ $result_ 'assertEq' "$message_"
+	printTestResults_ $result_ "$testName_" "$message_"
 
 	return $result_
 	
@@ -246,30 +187,113 @@ assertEq() {
 
 
 # ______________________________________________________________________________
-assertEquals() {
+# <input or message> <input or nothing> <number nf parameters>  <expectingempty> <testname> <defaultmessage>
+assertEmptyOrNot_() {
 
-	local test_=''
-	local message_=''
+	local input_=
+	local message_=
+	local numParams_="$3"
+	local expecting_="$4"
+	local testName_="$5"
+	local defaultMessage_="$6"
+
+	if [ "$numParams_" -eq 1 ]; then
+		# only input default message
+		input_="$1"
+		message_="$defaultMessage_"
+	elif [ "$numParams_" -eq 2 ]; then
+		message_="$1"
+		input_=" 2"
+	else 
+		echoerr_ "$testName_: Wrong number of parameters passed to test: '$numParams_'"
+		return $ERR_PARAMS_	
+	fi;
+
+	[ -n "$SKIPPING__" ] && return 0
+	asserts_=$(($asserts_+1))
 	
-	checkMsgAndBinaryExpr_ "$1" "$2" "$3" $# '=' 'assertEquals' "assertEquals failed: expecting $1 and got $2"
-	local result_=$?
-	[ $result_ -ne $OK_ ] && return $result_
-		
-	assert_ 'true' "$test_"
-	result_=$?
-	printTestResults_ $result_ 'assertEquals' "$message_"
-
+	local result_=
+	if [ -z "$input_" ]; then
+		if [ "$expecting_" = 'empty' ]; then
+			result_=$PASSED_
+		else
+			result_=$NOTPASSED_
+		fi
+	else 
+		if [ "$expecting_" = 'empty' ]; then
+			result_=$NOTPASSED_
+		else
+			result_=$PASSED_
+		fi
+	fi
+	printTestResults_ $result_ 'assertZ' "$message_"
+	
 	return $result_
 	
 }
 
 
+# PUBLIC FUNCTIONS
+
+# ______________________________________________________________________________  
+startSkippingTests() {
+	SKIPPING__=1
+}
 
 
-if [ -z "$PS_SKIP_ALL" ]; then
+# ______________________________________________________________________________  
+stopSkippingTests() {
+	SKIPPING__=
+}
+
+
+# ______________________________________________________________________________  
+assertTrue() {
+	testUnary_ "$1" "$2" 'true' 'assertTrue' "assertTrue failed: '$1' evaluates to false"
+}
+
+
+# ___^__________________________________________________________________________  
+assertFalse() {
+	testUnary_ "$1" "$2" 'false' 'assertFalse' "assertFalse failed: '$1' evaluates to true"
+}
+
+
+# ______________________________________________________________________________  
+# expected actual [ message ]
+assertEq() {
+	testBinary_ "$1" "$2" "$3" $# '-eq' 'assertEquals' "assertEq failed: expecting $1 and got $2"
+}
+
+
+#_________________________________________________ 
+# not expected actual [ message ]
+assertNe() {
+	testBinary_ "$1" "$2" "$3" $# '-ne' 'assertNe' "assertNe failed: not expecting '$1' and got that value"
+}
+
+
+# _____________________________________________________________________________
+assertEquals() {
+	testBinary_ "$1" "$2" "$3" $# '=' 'assertEquals' "assertEquals failed: expecting '$1' and got '$2'"
+}
+
+
+# ______________________________________________________________________________
+assertZ() {
+	assertEmptyOrNot_ "$1" "$2" $# 'empty' 'assertZ' "assertZ failed: '$1' is not empty"
+}
+
+
+# ______________________________________________________________________________
+assertN() {
+	assertEmptyOrNot_ "$1" "$2" $# 'notempty' 'assertZ' "assertN failed: '$1' is empty"
+}
 
 
 #### TESTING BEHAVIOUR ITSELF ####
+
+if [ -z "$PS_SKIP_ALL" ]; then
 
 script_="$0"
 tests_=0
