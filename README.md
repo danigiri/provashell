@@ -43,7 +43,7 @@ There are three ways to get the script:
 
 ### The quick n' dirty
 
-Downloading the script itself is enough as _provashell_ has no dependencies.
+Downloading the script itself is enough as _provashell_ has no dependencies (example downloads the 1.0.0 release).
 ```Shell
 curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-1.0.0/src/main/bash/provashell'
 ```
