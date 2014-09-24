@@ -74,7 +74,7 @@ git clone https://github.com/danigiri/provashell.git
 mvn package
 find target/rpm -name '*.rpm' -exec rpm -ilv -qp '{}' \;
 ```
-This method requires Java and (Apache Maven!)[http://maven.apache.org] to be 
+This method requires Java and [Apache Maven!](http://maven.apache.org) to be 
 installed, as well as the `rpmbuild` tool (which can be found in the `rpm-build` 
 package on CentOS or similar packages in other distributions).
 
