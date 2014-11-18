@@ -10,25 +10,25 @@ PARAMS_=4
 BADTEST_=5
 
 err_() {
-	echo "$1"
+	printf %s\\n "$@"
 	exit 1
 }
 
 
 echo '-------------- Testing assertEq --------------'
-assertEq &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertEq without params should fail' 
+$(assertEq 2>/dev/null)
+[ $? -ne "$PARAMS_" ] && err_ 'assertEq without params should be an error' 
 
-assertEq 0 &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertEq with only one param should fail' 
+$(assertEq 0 2>/dev/null)
+[ $? -ne $PARAMS_ ] && err_ 'assertEq with only one param should be an error' 
 
 assertEq 0 0
-[ $? -ne $OK_ ] && err_ 'assertEq two identical numbers should not fail'
+[ $? -ne "$OK_" ] && err_ 'assertEq two identical numbers should not fail'
 
 assertEq 1 01
 [ $? -ne $OK_ ] && err_ 'assertEq two identical numbers should not fail'
 
-assertEq 0 1 &>/dev/null
+assertEq 0 1 >/dev/null
 [ $? -ne $FAIL_ ] && err_ 'assertEq two different numbers should fail'
 
 assertEq 'message' 0 0
@@ -38,18 +38,18 @@ m_=$(assertEq 'message' 0 1)
 [ "$m_" != 'message' ] && err_ 'assertEq two different numbers should fail with message'
 
 
-echo '------------ Testing assertNe ------------'
+echo '-------------- Testing assertNe --------------'
 
-assertNe &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertNe without params should fail'
+$(assertNe 2>/dev/null)
+[ $? -ne $PARAMS_ ] && err_ 'assertNe without params should be an error'
 
-assertNe 0 &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertNe with only one param should fail'
+$(assertNe 0 2>/dev/null)
+[ $? -ne $PARAMS_ ] && err_ 'assertNe with only one param should be an error'
 
-assertNe 1 01 &>/dev/null
+assertNe 1 01 >/dev/null
 [ $? -ne $FAIL_ ] && err_ 'assertNe two identical numbers should fail'
 
-assertNe 0 0 &>/dev/null
+assertNe 0 0 >/dev/null
 [ $? -ne $FAIL_ ] && err_ 'assertNe two identical numbers should fail'
 
 assertNe 0 1
@@ -64,13 +64,13 @@ m_=$(assertNe 'message' 0 0)
 
 echo '------------ Testing assertEquals ------------'
 
-assertEquals &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertEquals without params should fail'
+$(assertEquals 2>/dev/null)
+[ $? -ne $PARAMS_ ] && err_ 'assertEquals without params should be an error'
 
 assertEquals aa aa
 [ $? -ne $OK_ ] && err_ 'assertEquals two identical strings should not fail'
 
-assertEquals aa ab &>/dev/null
+assertEquals aa ab >/dev/null
 [ $? -ne $FAIL_ ] && err_ 'assertEquals two different strings should fail'
 
 assertEquals 'message' aa aa
@@ -78,5 +78,23 @@ assertEquals 'message' aa aa
 
 m_=$(assertEquals 'message' aa ab)
 [ "$m_" != 'message' ] && err_ 'assertEquals two different strings should fail with message'
+
+
+echo '---------- Testing assertNotEquals ----------'
+
+$(assertNotEquals 2>/dev/null)
+[ $? -ne $PARAMS_ ] && err_ 'assertEquals without params should be an error'
+
+assertNotEquals aa ab
+[ $? -ne $OK_ ] && err_ 'assertEquals two different strings should not fail'
+
+assertNotEquals aa aa >/dev/null
+[ $? -ne $FAIL_ ] && err_ 'assertEquals two equal strings should fail'
+
+assertNotEquals 'message' aa ab
+[ $? -ne $OK_ ] && err_ 'assertEquals two different strings with a message should not fail'
+
+m_=$(assertNotEquals 'message' aa aa)
+[ "$m_" != 'message' ] && err_ 'assertEquals two equal strings should fail with message'
 
 exit 0

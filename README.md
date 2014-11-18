@@ -3,8 +3,9 @@
 ### Bash (and shell) unit testing for the masses
 
 _provashell_ is a simple bash unit testing library that employs annotations and
-is completely self-contained on one file. It should work on most if not all
-POSIX shells as  bash-specific functionality has been avoided.
+is completely self-contained on one file. It should work on most POSIX shells as
+any bash-specific functionality has been avoided (it has been tested on bash and
+zsh).
 
 
 ## Getting Started
@@ -79,7 +80,6 @@ installed, as well as the `rpmbuild` tool (which can be found in the `rpm-build`
 package on CentOS or similar packages in other distributions).
 
 
-
 ## Usage
 
 _provashell_ employs annotations to run the tests, preparation and cleanup 
@@ -114,12 +114,12 @@ A sample test script looks like this:
 
 	#@Test
 	foo() {
-		assertTrue '[ 0 -eq 0 ]'
+		assertTrue `echo 0`
 		assertEq 'Zeroes should be equal' 0 0
 	}
 
 	fooTestNotRunning() {
-		assertTrue '[ 0 -eq 0 ]'
+		assertTrue `[ 0 -eq 0 ]; echo $?`
 	}
 
 	. provashell
@@ -144,19 +144,18 @@ Runs the function after each test is run
 	 
 ####	#@Test
 Identifies the function as a test and it is run once by provashell, note that 
-test order in the script is respected 	
+test order in the script is respected.
 
 The following assertions are defined:
 
-####	assertTrue ['message'] <'expression expected to be true'>
+####	assertTrue ['message'] <'content'>
 	
-Checks if the expression evaluates to true, otherwise it prints `message` to 
-STDERR (or a default one if no message is passed). The expression must be a 
-shell test one, usually `test`, `[ ]`, extended test `[[ ]]` in the case of bash
-or testable constructs such as `(( ))` or `let`. Therefore, calls such as
-`assertTrue "[ -e $file ]"` or `assertTrue 'Message' "test -z '$v'"` are valid
-whereas `assertTrue '0 -eq 0' is not. If no message argument is passed a
-default one will be used if the assertion does not validate correctly.
+Checks if the content equals true (that is, `0`), otherwise it prints 
+`message` to STDOUT. To evaluate an expression or command, this shortcut can be 
+used: `assertTrue $(command; echo $?)` or even custom test expressions such as: 
+`assertTrue $([ 0 -eq 0 ]; echo $?)` which comes in handy if the test expression
+in question is not provided in _provashell_. Note that if no message argument is
+passed a default one will be output.
 	
 ####	assertFalse ['message'] <'expression expected to be false'>
 	
@@ -175,6 +174,10 @@ terribly useful in most tests but here we go.
 	
 Assertion testing the equality of two strings using `=`
 
+####	assertNotEquals ['message'] <'expected string'> <'actual string'>
+	
+Assertion testing the inequality of two strings using `!=`
+
 ####	assertZ ['message'] <'string expected to be empty'>
 	
 Assertion checking if the input string is empty (using `-z`).
@@ -183,37 +186,6 @@ Assertion checking if the input string is empty (using `-z`).
 	
 Assertion checking if the input string is not empty (anything that gets `-z` to
 be false).
-	
-	
-	
-The following utility methods are also available:
-
-####	startSkippingTests
-	
-Prevents assertions from being cheked. This means that the test expressions 
-themselves will not be evaluated at all. Input checking _will still be done_ so
-clear errors such as are not passing any input to tests are not masked by 
-skipping.
-
-####	stopSkippingTests
-
-Behaviour is back to assertions being checked.
-
-
-### Environment variables
-
-Two environment variables modify the behaviour of _provashell_ if they are 
-defined with any value
-
-####	export PS_VERBOSE=1
-
-Adds extra diagnostics messages to output. For instance it outputs which
-assertions are actually being executed.
-
-####	export PS_QUIET=1
-
-Supresses _provashell_'s normal output (for now the end message stating how 
-many tests have been ran). Overrides `PS_VERBOSE`.
 
 
 ### Assert function return codes
@@ -243,6 +215,59 @@ are considered correct input parameters).
 
 The expression passed to the assertion was not a valid expression.
 
+
+The following utility methods are also available:
+
+####	startSkippingTests
+	
+Prevents assertions from being cheked. This means that the test expressions 
+themselves will not be evaluated at all. Input checking _will still be done_ so
+clear errors such as are not passing any input to tests are not masked by 
+skipping.
+
+####	stopSkippingTests
+
+Behaviour is back to assertions being checked.
+
+
+### Environment variables
+
+These environment variables modify the behaviour of _provashell_ if they are 
+defined with any nonempty value:
+
+####	PS_VERBOSE=<whatever>
+
+Adds extra diagnostics messages to output. For instance it outputs which
+assertions are actually being executed.
+
+####	PS_QUIET=<whatever>
+
+Supresses _provashell_'s normal output (for now the end message stating how 
+many tests have been ran). Overrides `PS_VERBOSE`.
+
+
+####	PS_EXIT_ON_FAIL=<whatever>
+
+If a test fails it will exit with (3). Useful to stop execution of build 
+pipelines.
+
+####	PS_FAILS_TO_STDERR=<whatever>
+
+Failure messages are output to STDERR instead of STDOUT (which is the default).
+
+
+## A note on security
+
+_provashell_ previously used `eval` for added flexibility and to support
+running expressions directly. Which meant that if expressions included 
+user-supplied  input there was a very real security risk. Now the library 
+does not run `eval` anymore which means no potential security problems (yay!). 
+You should check the source code in any case and see for yourself.
+
+The only code actually ran by the testing library is the set of setup functions 
+(@BeforeScript, @AfterScript, @Before, @After and the @Test's themselves) as
+expected. If these functions include user-supplied input then use at your own
+risk.
 
 ## Contributing
 

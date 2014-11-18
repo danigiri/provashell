@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env dash
 
 #@BeforeScript
 init() {
@@ -22,12 +22,12 @@ tearDown() {
 
 #@Test
 foo() {
-	assertTrue '[ 0 -eq 0 ]'
+	assertTrue `[ 0 -eq 0 ]; echo $?`
 	assertEq 'Zeroes should be equal' 0 0
 }
 
 fooNotRunning() {
-	assertTrue '[ 0 -eq 0 ]'
+	assertTrue `[ 0 -eq 0 ]; echo $?`
 }
 
 . classes/provashell

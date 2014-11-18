@@ -25,35 +25,45 @@ ERR_TESTNOTVALID_=5
 #### ENVIRONMENT VARIABLES ####
 
 # PS_SKIP_ALL: provashell does not run any tests and only loads its functions
-# PS_VERBOSE: display diagnostics stuff
+# PS_VERBOSE: output diagnostics stuff on STDOUT
 # PS_QUIET: be absolutely quiet, overrides verbose
 
 #PS_SKIP_ALL=
 #PS_VERBOSE=
 #PS_QUIET=
+#PS_EXIT_ON_FAIL=
+#PS_FAILS_TO_STDERR=
 
+
+# TODO do an ugly switch so eval isn't actually used
 
 # INTERNAL HELPER FUNCTIONS
 
 # ______________________________________________________________________________
 # Display message on STDERR
-echoerr_() { echo "$@" 1>&2; }
+echoerr_() { printf %s\\n "$@" 1>&2; }
 
 
 # ______________________________________________________________________________
-echoVerbose_() { [ -n "$PS_VERBOSE" ] && [ -z "$PS_QUIET" ] echo "$@"; }
+echoVerbose_() { [ -n "$PS_VERBOSE" ] && [ -z "$PS_QUIET" ] && printf %s\\n "$@"; }
+
+
+# ______________________________________________________________________________  
+exitIfFailedAndConfiguredToExit_() {
+	[ -n "$PS_EXIT_ON_FAIL" ] && exit "$1"
+}
 
 
 # ______________________________________________________________________________
 # echo the annotated <file> <annotation name>
 findAnnotatedFunctions_() {
 
-	local file_="$1"
-	local annotation_="#$2$"
+	file_="$1"
+	annotation_="#$2$"
 
 	# list all functions, 
 	# remove the annotations themselves, 
-	#remove the grep separator '--'
+	# remove the grep separator '--'
 	# and delete '() {' so we're only left with the function names
 	# also handle 'function foo }' style declaration
 	grep --after-context=1 "$annotation_" "$file_" | \
@@ -66,87 +76,60 @@ findAnnotatedFunctions_() {
 
 
 # ______________________________________________________________________________  
-assert_() {
-
+evaluateTestExpr_() {
 	# bookeeping: skipping asserts and assert counting
 	[ -n "$SKIPPING__" ] && return 0
-	asserts_=$(($asserts_+1))
+	[ -z "$asserts_" ] && asserts_=0
+	asserts_=$((asserts_+1))
 
-	local expectingTrue_="$1"
-	local test_="$2"
+	op1_="$1"
+	operator_="$2"
+	op2_="$3"
+	passed_="$NOTPASSED_"
 
-	if [ -z "$test_" ]; then
-		return $ERR_TESTNOTVALID_
-	fi
+#TODO: provide more helpful error messages when doing common mistakes such as
+# assertTrue 0 'message'
 
-	local evaluatedToTrue_=
-	local eval_="if $test_; then evaluatedToTrue_=true; else evaluatedToTrue_='false'; fi"
-	eval "$eval_"
-	if [ "$evaluatedToTrue_" == 'true' ]; then
-		if [ "$expectingTrue_" == 'false' ]; then
-			return $NOTPASSED_		
-		fi
-	else 
-		if [ "$expectingTrue_" = 'true' ]; then
-			return $NOTPASSED_		
-		fi	
-	fi
+	# if we do this we avoid using evil 'eval'
+	case "$operator_" in
 	
-	return $PASSED_
+	'-eq')
+		if [ "$op1_" -eq "$op2_" ]; then passed_="$PASSED_"; fi
+	;;
+	'-ne')
+		if [ "$op1_" -ne "$op2_" ]; then passed_="$PASSED_"; fi
+	;;
+	'=')
+		if [ "$op1_" = "$op2_" ]; then passed_="$PASSED_"; fi
+	;;
+	'!=')
+		if [ "$op1_" != "$op2_" ]; then passed_="$PASSED_"; fi
+	;;
+	esac
+	
+	return "$passed_"
 	
 }
+
 
 
 # ______________________________________________________________________________  
 printTestResults_() {
 
-	local result_="$1"
-	local testName_="$2"
-	local message_="$3"
-	if [ $result_ -eq $ERR_TESTNOTVALID_ ]; then
+	result_="$1"
+	testName_="$2"
+	message_="$3"
+	if [ "$result_" -eq "$ERR_TESTNOTVALID_" ]; then
 		echoerr_ "$testName_: Empty test statement"
-	elif [ $result_ -eq $NOTPASSED_ ]; then
-		echo "$message_"
-	elif [ $result_ -eq $ERR_ ]; then
+	elif [ "$result_" -eq "$NOTPASSED_" ]; then
+		if [ -z "$PS_FAILS_TO_STDERR" ]; then
+			printf %s\\n "$message_"
+		else 
+			echoerr_ "$message_"
+		fi
+	elif [ "$result_" -eq "$ERR_" ]; then
 		echoerr_ "$testName_: Unknown problem running test with parameters ($result_)"
 	fi
-
-}
-
-
-# ______________________________________________________________________________  
-# <message or test> <test or nothing> <test name> <true or false> <default message>
-# Options:
-# a) '<message>' '<test>' 	--> which means a complete call or
-# b) '<test>' '' 			--> which means default message
-# c) '' '' 					--> we got no arguments from original caller or empty test 
-testUnary_() {
-
-	local message_="$1"
-	local test_="$2"
-	local expectTrue_="$3"
-	local testName_="$4"
-	local defaultMessage_="$5"
-	
-	if [ -z "$test_" ]; then
-		# no message was passed, therefore we go for default message
-		if [ -z "$message_" ]; then
-			# zero args or empty test
-			echoerr_ "$testName_: Wrong parameters passed to test"
-			return $ERR_PARAMS_
-		fi
-		test_="$message_"
-		message_="$defaultMessage_"
-	else
-		# a message was passed, we go for a full call, no need to do anything
-		:
-	fi
-
-	assert_ "$expectTrue_" "$test_"
-	local result_=$?
-	printTestResults_ $result_ "$testName_" "$message_"
-
-	return $result_
 
 }
 
@@ -155,47 +138,48 @@ testUnary_() {
 testBinary_() {
 # <message or op1> <op1 or op2> <op2 or nothing> <num params> <operator> <test name> <default message>
 	
-	local message_="$1"
-	local op1_="$2"
-	local op2_="$3"
-	local numParams_="$4"
-	local operator_="$5"
-	local testName_="$6"
-	local defaultMessage_="$7"
+	message_="$1"
+	op1_="$2"
+	op2_="$3"
+	numParams_="$4"
+	operator_="$5"
+	testName_="$6"
+	defaultMessage_="$7"
 
 	if [ "$numParams_" -eq 3 ]; then
-		# full call with user supplied message, no need to do anything
+		# full call with user supplied message, no need to shift parameters
 		:
 	elif [ "$numParams_" -eq 2 ]; then
-		# default message so what we got on $message_ was actually op1 and $op1 was actually op2
+		# default message so what we got on$message_ was actually op1 and op1 was actually op2
 		op2_="$op1_"
 		op1_="$message_"
 		message_="$defaultMessage_"
 	else
 		echoerr_ "$testName_: Wrong number of parameters passed to test: '$numParams_'"
-		return $ERR_PARAMS_	
+		exit "$ERR_PARAMS_"	
 	fi
-	test_="[ '$op1_' $operator_ '$op2_' ]"
+	
 
-	assert_ 'true' "$test_"
-	local result_=$?
+	evaluateTestExpr_ "$op1_" "$operator_" "$op2_"
+	result_=$?
 	printTestResults_ $result_ "$testName_" "$message_"
 
-	return $result_
+	exitIfFailedAndConfiguredToExit_ "$result_"
+	return "$result_"
 	
 }
 
 
 # ______________________________________________________________________________
-# <input or message> <input or nothing> <number nf parameters>  <expectingempty> <testname> <defaultmessage>
+# <input or message> <input or nothing> <number of parameters>  <expectingempty> <testname> <defaultmessage>
 assertEmptyOrNot_() {
 
-	local input_=
-	local message_=
-	local numParams_="$3"
-	local expecting_="$4"
-	local testName_="$5"
-	local defaultMessage_="$6"
+	input_=
+	message_=
+	numParams_="$3"
+	expecting_="$4"
+	testName_="$5"
+	defaultMessage_="$6"
 
 	if [ "$numParams_" -eq 1 ]; then
 		# only input default message
@@ -206,28 +190,30 @@ assertEmptyOrNot_() {
 		input_=" 2"
 	else 
 		echoerr_ "$testName_: Wrong number of parameters passed to test: '$numParams_'"
-		return $ERR_PARAMS_	
+		exit $ERR_PARAMS_	
 	fi;
 
 	[ -n "$SKIPPING__" ] && return 0
-	asserts_=$(($asserts_+1))
+	[ -z "$asserts_" ] && asserts_=0
+	asserts_=$((asserts_+1))
 	
-	local result_=
+	result_=
 	if [ -z "$input_" ]; then
 		if [ "$expecting_" = 'empty' ]; then
-			result_=$PASSED_
+			result_="$PASSED_"
 		else
-			result_=$NOTPASSED_
+			result_="$NOTPASSED_"
 		fi
 	else 
 		if [ "$expecting_" = 'empty' ]; then
-			result_=$NOTPASSED_
+			result_="$NOTPASSED_"
 		else
-			result_=$PASSED_
+			result_="$PASSED_"
 		fi
 	fi
 	printTestResults_ $result_ 'assertZ' "$message_"
 	
+	exitIfFailedAndConfiguredToExit_ "$result_"
 	return $result_
 	
 }
@@ -243,31 +229,49 @@ startSkippingTests() {
 
 # ______________________________________________________________________________  
 stopSkippingTests() {
-	SKIPPING__=
+	unset SKIPPING__
 }
 
 
 # ______________________________________________________________________________  
+# [ message ] <value expected to be true (0)>
 assertTrue() {
-	testUnary_ "$1" "$2" 'true' 'assertTrue' "assertTrue failed: '$1' evaluates to false"
+#	testUnary_ "$1" "$2" 'true' 'assertTrue' "assertTrue failed: '$1' evaluates to false"
+	if [ $# -eq 1 ]; then
+		testBinary_ '0' "$1" '' 2 '-eq' 'assertTrue' "assertTrue failed: '$1' evaluates to false (non zero)"	
+	elif [ $# -eq 2 ]; then
+		testBinary_ "$1" '0' "$2" 3 '-eq' 'assertTrue' "assertTrue failed: '$2' evaluates to false (non zero)"
+	else
+		echoerr_ "assertTrue: Wrong number of parameters passed to test: '$#'"
+		exit $ERR_PARAMS_	
+	fi
 }
 
 
-# ___^__________________________________________________________________________  
+# ______________________________________________________________________________
+# [ message ] <value expected to be true (not 0)>  
 assertFalse() {
-	testUnary_ "$1" "$2" 'false' 'assertFalse' "assertFalse failed: '$1' evaluates to true"
+#	testUnary_ "$1" "$2" 'false' 'assertFalse' "assertFalse failed: '$1' evaluates to true"
+	if [ $# -eq 1 ]; then
+		testBinary_ '0' "$1" '' 2 '-ne' 'assertFalse' "assertFalse failed: '$1' evaluates to true (0)"	
+	elif [ $# -eq 2 ]; then
+		testBinary_ "$1" '0' "$2" 3 '-ne' 'assertFalse' "assertFalse failed: '$2' evaluates to true (0)"
+	else
+		echoerr_ "assertFalse: Wrong number of parameters passed to test: '$#'"
+		exit $ERR_PARAMS_	
+	fi
 }
 
 
 # ______________________________________________________________________________  
-# expected actual [ message ]
+# [ message ] expected actual 
 assertEq() {
-	testBinary_ "$1" "$2" "$3" $# '-eq' 'assertEquals' "assertEq failed: expecting $1 and got $2"
+	testBinary_ "$1" "$2" "$3" $# '-eq' 'assertEq' "assertEq failed: expecting $1 and got $2"
 }
 
 
 #_________________________________________________ 
-# not expected actual [ message ]
+# [ message ] not expected actual 
 assertNe() {
 	testBinary_ "$1" "$2" "$3" $# '-ne' 'assertNe' "assertNe failed: not expecting '$1' and got that value"
 }
@@ -276,6 +280,12 @@ assertNe() {
 # _____________________________________________________________________________
 assertEquals() {
 	testBinary_ "$1" "$2" "$3" $# '=' 'assertEquals' "assertEquals failed: expecting '$1' and got '$2'"
+}
+
+
+# _____________________________________________________________________________
+assertNotEquals() {
+	testBinary_ "$1" "$2" "$3" $# '!=' 'assertNotEquals' "assertNotEquals failed: expecting '$1' and got '$2'"
 }
 
 
@@ -319,7 +329,7 @@ for t in `findAnnotatedFunctions_ "$script_" '@Test'`; do
 	[ -n "$before_" ] && $before_
 	echoVerbose_ "provashell: Running test '$t'"
 	$t
-	tests_=$(($tests_+1))
+	tests_=$((tests_+1))
 	[ -n "$after_" ] && $after_
 done
 

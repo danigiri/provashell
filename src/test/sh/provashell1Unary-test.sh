@@ -10,76 +10,72 @@ PARAMS_=4
 BADTEST_=5
 
 err_() {
-	echo "$1"
+	printf %s\\n "$@"
 	exit 1
 }
 
 
 echo '------------- Testing assertTrue -------------'
 
-assertTrue &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertTrue without params should fail'
+$(assertTrue 2>/dev/null)
+[ $? -ne "$PARAMS_" ] && err_ 'assertTrue without params should be an error'
 
-assertTrue '' &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertTrue with empty test should fail'
+assertTrue `[ 0 -eq 0 ]; echo $?`
+[ $? -ne "$OK_" ] && err_ 'assertTrue a true statement should not fail'
 
-assertTrue '[ 0 -eq 0 ]'
-[ $? -ne $OK_ ] && err_ 'assertTrue a true statement should not fail'
+assertTrue `echo 0`
+[ $? -ne "$OK_" ] && err_ 'assertTrue a true statement should not fail'
 
-assertTrue '[ 0 -eq 1 ]' &>/dev/null
+assertTrue `echo 1` >/dev/null
 [ $? -ne $FAIL_ ] && err_ 'assertTrue a false statement should fail'
 
-assertTrue 'message' '[ 0 -eq 0 ]'
+assertTrue 'message' `[ 0 -eq 0 ]; echo $?`
 [ $? -ne $OK_ ] && err_ 'assertTrue a true statement with a message should not fail'
 
-m_=$(assertTrue 'message' '[ 0 -eq 1 ]')
+m_=$(assertTrue 'message' $([ 0 -eq 1 ]; echo $?) )
 [ "$m_" != 'message' ] && err_ 'assertTrue a false statement should fail with message'
 
 
 echo '------------ Testing assertFalse -------------'
 
-assertFalse &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertFalse without params should fail'
+$(assertFalse 2>/dev/null)
+[ $? -ne $PARAMS_ ] && err_ 'assertFalse without params should be an error'
 
-assertFalse '' &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertFalse with empty test should fail'
-
-assertFalse '[ 0 -eq 1 ]'
+assertFalse `echo 1`
 [ $? -ne $OK_ ] && err_ 'assertFalse a false statement should not fail'
 
-assertFalse '[ 0 -eq 0 ]' &>/dev/null
+assertFalse `[ 0 -eq 0 ]; echo $?` >/dev/null
 [ $? -ne $FAIL_ ] && err_ 'assertFalse a true statement should fail'
 
-assertFalse 'message' '[ 0 -eq 1 ]'
+assertFalse 'message' `[ 0 -eq 1 ]; echo $?`
 [ $? -ne $OK_ ] && err_ 'assertFalse a false statement with a message should not fail'
 
-m_=$(assertFalse 'message' '[ 0 -eq 0 ]')
+m_=$(assertFalse 'message' $([ 0 -eq 0 ]; echo $?))
 [ "$m_" != 'message' ] && err_ 'assertFalse a true statement should fail with message'
 
 
-echo '------------ Testing assertZ -------------'
+echo '-------------- Testing assertZ ---------------'
 
-assertZ &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertZ without params should fail'
+$(assertZ 2>/dev/null)
+[ $? -ne $PARAMS_ ] && err_ 'assertZ without params should be an error'
 
 assertZ ''
 [ $? -ne $OK_ ] && err_ 'assertZ an empty string should not fail'
 
-assertZ 'a' &>/dev/null
+assertZ 'a' >/dev/null
 [ $? -ne $FAIL_ ] && err_ 'assertZ a non empty string should fail'
 
 
-echo '------------ Testing assertN -------------'
+echo '-------------- Testing assertN ---------------'
 
-assertN &>/dev/null
-[ $? -ne $PARAMS_ ] && err_ 'assertN without params should fail'
+$(assertN 2>/dev/null)
+[ $? -ne $PARAMS_ ] && err_ 'assertN without params should be an error'
 
-assertN '' &>/dev/null
+assertN '' >/dev/null
 [ $? -ne $FAIL_ ] && err_ 'assertN an empty string should fail'
 
 assertN 'a'
 [ $? -ne $OK_ ] && err_ 'assertN a non empty string should not fail'
-
 
 
 exit 0
