@@ -10,10 +10,10 @@ dash and zsh).
 
 ## Getting Started
 
-Usage is relatively straightfoward (using master version):
+Usage is relatively straightfoward (using latest release version):
 
 ```Shell
-curl -sO 'https://raw.githubusercontent.com/danigiri/provashell/provashell-1.0.0/src/main/bash/provashell'
+curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.0.1/src/main/sh/provashell'
 cat > test.sh <<EOF
 #!/bin/bash
 #@Test
@@ -45,9 +45,9 @@ There are three ways to get the script:
 ### The quick n' dirty
 
 Downloading the script itself is enough as _provashell_ has no dependencies 
-(example downloads the 1.0.0 release).
+(example downloads the 2.0.1 release).
 ```Shell
-curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-1.0.0/src/main/bash/provashell'
+curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.0.1/src/main/sh/provashell'
 ```
 
 ### Using git
@@ -60,7 +60,7 @@ git clone https://github.com/danigiri/provashell.git
 ls -l src/main/bash/provashell
 ```
 
-You can work on the `master` itself or pick the release of your choosing with
+You can work on the `master` itself as in the previous example or pick the release of your choosing with
 `git tag -l` 
 
 ### Building a deployable rpm using Maven
