@@ -35,21 +35,21 @@ ERR_TESTNOTVALID_=5
 #PS_FAILS_TO_STDERR=
 
 
-# TODO do an ugly switch so eval isn't actually used
-
 # INTERNAL HELPER FUNCTIONS
 
 # ______________________________________________________________________________
-# Display message on STDERR
+# Output message on STDERR <message>
 echoerr_() { printf %s\\n "$@" 1>&2; }
 
 
 # ______________________________________________________________________________
+# Output message on STDOUT if flags allow us <message>
 echoVerbose_() { [ -n "$PS_VERBOSE" ] && [ -z "$PS_QUIET" ] && printf %s\\n "$@"; }
 
 
 # ______________________________________________________________________________  
-exitIfFailedAndConfiguredToExit_() {
+# Exit if test just failed and our settings are set to exit on test assert fails
+exitIfFailedAndConfiguredToExit_() { 
 	[ -n "$PS_EXIT_ON_FAIL" ] && exit "$1"
 }
 
@@ -66,17 +66,21 @@ findAnnotatedFunctions_() {
 	# remove the grep separator '--'
 	# and delete '() {' so we're only left with the function names
 	# also handle 'function foo }' style declaration
+	# eliminate whitespace
 	grep --after-context=1 "$annotation_" "$file_" | \
 	grep -v "$annotation_" | \
 	grep -v -- '--'| \
-	sed -E 's/\s*\(\)\s*//g' | sed 's/{//g' | \
-	sed -E 's/function[\ \t]//g'
+	sed 's/[\(\)]//g' | sed 's/{.*//g' | \
+	sed 's/function[\ \t]//g' | \
+	tr -d '[:blank:]'
 	
 }
 
 
-# ______________________________________________________________________________  
+# ______________________________________________________________________________
+# Evaluate an assertion <operator 1> <op> <operator 2>
 evaluateTestExpr_() {
+
 	# bookeeping: skipping asserts and assert counting
 	[ -n "$SKIPPING__" ] && return 0
 	[ -z "$asserts_" ] && asserts_=0
@@ -90,7 +94,7 @@ evaluateTestExpr_() {
 #TODO: provide more helpful error messages when doing common mistakes such as
 # assertTrue 0 'message'
 
-	# if we do this we avoid using evil 'eval'
+	# if we do a case we avoid using evil 'eval'
 	case "$operator_" in
 	
 	'-eq')
@@ -114,6 +118,7 @@ evaluateTestExpr_() {
 
 
 # ______________________________________________________________________________  
+# output results of test <result> <test name> <message>
 printTestResults_() {
 
 	result_="$1"
@@ -135,24 +140,27 @@ printTestResults_() {
 
 
 # ______________________________________________________________________________  
-testBinary_() {
 # <message or op1> <op1 or op2> <op2 or nothing> <num params> <operator> <test name> <default message>
+# test a binary assertion
+testBinary_() {
 	
-	message_="$1"
-	op1_="$2"
-	op2_="$3"
+	message_=
+	op1_=
+	op2_=
 	numParams_="$4"
 	operator_="$5"
 	testName_="$6"
 	defaultMessage_="$7"
 
 	if [ "$numParams_" -eq 3 ]; then
-		# full call with user supplied message, no need to shift parameters
-		:
+		# full call with user supplied message
+		message_="$1"
+		op1_="$2"
+		op2_="$3"
 	elif [ "$numParams_" -eq 2 ]; then
-		# default message so what we got on$message_ was actually op1 and op1 was actually op2
-		op2_="$op1_"
-		op1_="$message_"
+		# default message so what we got on $1 was actually op1 and $2 was actually op2
+		op1_="$1"
+		op2_="$2"
 		message_="$defaultMessage_"
 	else
 		echoerr_ "$testName_: Wrong number of parameters passed to test: '$numParams_'"
@@ -172,6 +180,7 @@ testBinary_() {
 
 # ______________________________________________________________________________
 # <input or message> <input or nothing> <number of parameters>  <expectingempty> <testname> <defaultmessage>
+# Test an empty or not empty assertion, special case of unary assertion
 assertEmptyOrNot_() {
 
 	input_=
@@ -236,7 +245,6 @@ stopSkippingTests() {
 # ______________________________________________________________________________  
 # [ message ] <value expected to be true (0)>
 assertTrue() {
-#	testUnary_ "$1" "$2" 'true' 'assertTrue' "assertTrue failed: '$1' evaluates to false"
 	if [ $# -eq 1 ]; then
 		testBinary_ '0' "$1" '' 2 '-eq' 'assertTrue' "assertTrue failed: '$1' evaluates to false (non zero)"	
 	elif [ $# -eq 2 ]; then
@@ -251,7 +259,6 @@ assertTrue() {
 # ______________________________________________________________________________
 # [ message ] <value expected to be true (not 0)>  
 assertFalse() {
-#	testUnary_ "$1" "$2" 'false' 'assertFalse' "assertFalse failed: '$1' evaluates to true"
 	if [ $# -eq 1 ]; then
 		testBinary_ '0' "$1" '' 2 '-ne' 'assertFalse' "assertFalse failed: '$1' evaluates to true (0)"	
 	elif [ $# -eq 2 ]; then
@@ -271,7 +278,7 @@ assertEq() {
 
 
 #_________________________________________________ 
-# [ message ] not expected actual 
+# [ message ] <not expected> actual 
 assertNe() {
 	testBinary_ "$1" "$2" "$3" $# '-ne' 'assertNe' "assertNe failed: not expecting '$1' and got that value"
 }
@@ -312,14 +319,13 @@ asserts_=0
 
 echoVerbose_ "provashell: Found $totalTests_ tests"
 
-# before script setup (if declared)
-start_=$(findAnnotatedFunctions_ "$script_" '@BeforeScript')
+# before script setup (if declared), we take the last one
+start_=$(findAnnotatedFunctions_ "$script_" '@BeforeScript' | tail -1)
 [ -n "$start_" ] && $start_
 
-# establish individual test setup and teardown functions (if declared)
-
-before_=$(findAnnotatedFunctions_ "$script_" '@Before')
-after_=$(findAnnotatedFunctions_ "$script_" '@After')
+# establish individual test setup and teardown functions (if declared), last ones
+before_=$(findAnnotatedFunctions_ "$script_" '@Before' | tail -1)
+after_=$(findAnnotatedFunctions_ "$script_" '@After' | tail -1)
 
 # run the tests themselves, yay!
 # we are using for with an inline list instead of a pipe and a while read

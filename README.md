@@ -4,8 +4,8 @@
 
 _provashell_ is a simple bash unit testing library that employs annotations and
 is completely self-contained on one file. It should work on most POSIX shells as
-any bash-specific functionality has been avoided (it has been tested on bash and
-zsh).
+any bash-specific functionality has been avoided (it has been tested on bash, 
+dash and zsh).
 
 
 ## Getting Started
@@ -44,7 +44,8 @@ There are three ways to get the script:
 
 ### The quick n' dirty
 
-Downloading the script itself is enough as _provashell_ has no dependencies (example downloads the 1.0.0 release).
+Downloading the script itself is enough as _provashell_ has no dependencies 
+(example downloads the 1.0.0 release).
 ```Shell
 curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-1.0.0/src/main/bash/provashell'
 ```
@@ -131,16 +132,19 @@ A sample test script looks like this:
 The following annotations are defined:
 
 ####	#@BeforeScript
-Runs the function once before any tests are run
+Runs the function once before any tests are run. 
 	
 ####	#@AfterScript
-Runs the function once after all tests are run
+Runs the function once after all tests are run.
 	
 ####	#@Before
-Runs the function before each test is run
+Runs the function before each test is run.
 	
 ####	#@After
-Runs the function after each test is run
+Runs the function after each test is run.
+
+The last function annotated as such is the one used in every case (for instance,
+if two `@BeforeScript` functions are declared, only the last one will be used.
 	 
 ####	#@Test
 Identifies the function as a test and it is run once by provashell, note that 
