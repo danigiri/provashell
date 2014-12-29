@@ -307,6 +307,8 @@ assertN() {
 	assertEmptyOrNot_ "$1" "$2" $# 'notempty' 'assertZ' "assertN failed: '$1' is empty"
 }
 
+# TODO filesystem tests
+
 
 #### TESTING BEHAVIOUR ITSELF ####
 
@@ -321,7 +323,7 @@ echoVerbose_ "provashell: Found $totalTests_ tests"
 
 # before script setup (if declared), we take the last one
 start_=$(findAnnotatedFunctions_ "$script_" '@BeforeScript' | tail -1)
-[ -n "$start_" ] && $start_
+[ -n "$start_" ] && { echoVerbose_ "provashell: Executing '$start_'"; $start_; }
 
 # establish individual test setup and teardown functions (if declared), last ones
 before_=$(findAnnotatedFunctions_ "$script_" '@Before' | tail -1)
@@ -342,7 +344,7 @@ done
 
 # after script setup (if declared)
  end_=$(findAnnotatedFunctions_ "$script_" '@AfterScript')
-[ -n "$end_" ] && $end_
+[ -n "$end_" ] && { echoVerbose_ "provashell: Executing '$end_'"; $end_; }
 
 echoVerbose_ "provashell: checked $asserts_ assertions"
 [ -z "$PS_QUIET" ] && echo "provashell: Ran $tests_ of $totalTests_ tests"

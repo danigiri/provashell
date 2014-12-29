@@ -30,4 +30,5 @@ fooNotRunning() {
 	assertTrue `[ 0 -eq 0 ]; echo $?`
 }
 
+export PS_VERBOSE=1
 . classes/provashell
