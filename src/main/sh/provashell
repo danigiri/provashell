@@ -50,7 +50,7 @@ echoVerbose_() { [ -n "$PS_VERBOSE" ] && [ -z "$PS_QUIET" ] && printf %s\\n "$@"
 # ______________________________________________________________________________  
 # Exit if test just failed and our settings are set to exit on test assert fails
 exitIfFailedAndConfiguredToExit_() { 
-	[ -n "$PS_EXIT_ON_FAIL" ] && exit "$1"
+	[ -n "$PS_EXIT_ON_FAIL" ] && [ "$1" -ne 0 ] && exit "$1"
 }
 
 
