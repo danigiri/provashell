@@ -18,7 +18,7 @@ cat > test.sh <<EOF
 #!/bin/bash
 #@Test
 foo1() {
-    assertTrue '[ 0 -eq 0 ]'
+	assertTrue `[ 0 -eq 0 ]; echo $?`
     assertEq 0 0
     assertEquals foo foo
 }
@@ -152,7 +152,7 @@ test order in the script is respected.
 
 The following assertions are defined:
 
-####	assertTrue ['message'] <'content'>
+####	assertTrue ['message'] <expression expected to be true>
 	
 Checks if the content equals true (that is, `0`), otherwise it prints 
 `message` to STDOUT. To evaluate an expression or command, this shortcut can be 
@@ -161,7 +161,7 @@ used: `assertTrue $(command; echo $?)` or even custom test expressions such as:
 in question is not provided in _provashell_. Note that if no message argument is
 passed a default one will be output.
 	
-####	assertFalse ['message'] <'expression expected to be false'>
+####	assertFalse ['message'] <expression expected to be false>
 	
 Equivalent to `assertTrue` but expecting the expression to evaluate to false.
 	
@@ -190,6 +190,17 @@ Assertion checking if the input string is empty (using `-z`).
 	
 Assertion checking if the input string is not empty (anything that gets `-z` to
 be false).
+
+### Helper assertion functions
+
+These are complimentary asserts that are completely optional and just provided
+for convenience.
+
+####	assertPing ['message'] <'IP or DNS entry'>
+	
+Ping the specified address with a single packet with default timeout. Will fail
+if the IP cannot be reached or the DNS entry does not resolve. Currently uses
+the default interface.
 
 
 ### Assert function return codes

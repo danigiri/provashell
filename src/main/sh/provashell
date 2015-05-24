@@ -53,6 +53,13 @@ exitIfFailedAndConfiguredToExit_() {
 	[ -n "$PS_EXIT_ON_FAIL" ] && [ "$1" -ne 0 ] && exit "$1"
 }
 
+# ------------------------------------------------------------------------------
+ping_() {
+	# suppress statistics (stderr will still go out)
+	host_="$1"
+	/sbin/ping -q -c 1 -o "$host_" >/dev/null
+	return $?
+}
 
 # ______________________________________________________________________________
 # echo the annotated <file> <annotation name>
@@ -108,6 +115,10 @@ evaluateTestExpr_() {
 	;;
 	'!=')
 		if [ "$op1_" != "$op2_" ]; then passed_="$PASSED_"; fi
+	;;	
+	'ping')
+		ping_ "$op1_"
+		if [ "$?" -eq 0 ]; then passed_="$PASSED_"; fi
 	;;
 	esac
 	
@@ -178,10 +189,45 @@ testBinary_() {
 }
 
 
+# ------------------------------------------------------------------------------
+# <message or op1> <op1 or nothing> <num params> <operator> <test name> <default message>
+testUnary_() {
+
+	message_=
+	op1_=
+	numParams_="$3"
+	operator_="$4"
+	testName_="$5"
+	defaultMessage_="$6"
+
+	if [ "$numParams_" -eq 2 ]; then
+		# full call with user supplied message
+		message_="$1"
+		op1_="$2"
+	elif [ "$numParams_" -eq 1 ]; then
+		# default message so what we got on $1 was op1
+		op1_="$1"
+		message_="$defaultMessage_"
+	else
+		echoerr_ "$testName_: Wrong number of parameters passed to test: '$numParams_'"
+		exit "$ERR_PARAMS_"	
+	fi
+	
+
+	evaluateTestExpr_ "$op1_" "$operator_" ''
+	result_=$?
+	printTestResults_ $result_ "$testName_" "$message_"
+
+	exitIfFailedAndConfiguredToExit_ "$result_"
+	return "$result_"
+
+}
+
+
 # ______________________________________________________________________________
 # <input or message> <input or nothing> <number of parameters>  <expectingempty> <testname> <defaultmessage>
 # Test an empty or not empty assertion, special case of unary assertion
-assertEmptyOrNot_() {
+testEmptyOrNot_() {
 
 	input_=
 	message_=
@@ -298,14 +344,21 @@ assertNotEquals() {
 
 # ______________________________________________________________________________
 assertZ() {
-	assertEmptyOrNot_ "$1" "$2" $# 'empty' 'assertZ' "assertZ failed: '$1' is not empty"
+	testEmptyOrNot_ "$1" "$2" $# 'empty' 'assertZ' "assertZ failed: '$1' is not empty"
 }
 
 
 # ______________________________________________________________________________
 assertN() {
-	assertEmptyOrNot_ "$1" "$2" $# 'notempty' 'assertZ' "assertN failed: '$1' is empty"
+	testEmptyOrNot_ "$1" "$2" $# 'notempty' 'assertZ' "assertN failed: '$1' is empty"
 }
+
+
+# ------------------------------------------------------------------------------
+assertPing() {
+	testUnary_ "$1" "$2" $# 'ping' 'assertPing' ""
+}
+
 
 # TODO filesystem tests
 
