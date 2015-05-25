@@ -199,8 +199,8 @@ for convenience.
 ####	assertPing ['message'] <'IP or DNS entry'>
 	
 Ping the specified address with a single packet with default timeout. Will fail
-if the IP cannot be reached or the DNS entry does not resolve. Currently uses
-the default interface.
+if the IP cannot be reached or the DNS entry does not resolve. This test 
+currently attaches to the default network interface.
 
 
 ### Assert function return codes

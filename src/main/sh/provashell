@@ -61,6 +61,32 @@ ping_() {
 	return $?
 }
 
+
+# ------------------------------------------------------------------------------
+getPath_() {
+	# linux whereis adds a prefix with the bin and ':' and macosx doesn't =)
+	# let's use which
+	which "$1"
+}
+
+
+# ------------------------------------------------------------------------------
+tcpconnect_() {
+	# try to connect to host $1 on port $2
+	host_="$1"
+	port_="$2"
+	nc_=$( getPath_ 'nc' )
+	if [ -x "$nc_" ]; then
+		# -w 1: one second timeout -z: scan port 
+		$nc_ -w 1 -z "$host_" "$port_" < /dev/null
+	else
+		echoVerbose_ "skipping assertTCPConnect on '$host_ $port', no netcat found"
+		asserts_=$((asserts_-1))
+		return 0
+	fi
+}
+
+
 # ______________________________________________________________________________
 # echo the annotated <file> <annotation name>
 findAnnotatedFunctions_() {
@@ -119,6 +145,10 @@ evaluateTestExpr_() {
 	'ping')
 		ping_ "$op1_"
 		if [ "$?" -eq 0 ]; then passed_="$PASSED_"; fi
+	;;
+	'tcpconnect')
+		tcpconnect_ "$op1_" "$op2_"
+		if [ "$?" -eq 0 ]; then passed_="$PASSED_"; fi	
 	;;
 	esac
 	
@@ -356,9 +386,14 @@ assertN() {
 
 # ------------------------------------------------------------------------------
 assertPing() {
-	testUnary_ "$1" "$2" $# 'ping' 'assertPing' ""
+	# <message or op1> <op1 or nothing> <num params> <operator> <test name> <default message>
+	testUnary_ "$1" "$2" $# 'ping' 'assertPing' "assertPing failed: cannot ping '$1'"
 }
 
+# _____________________________________________________________________________
+assertTCPConnect() {
+	testBinary_ "$1" "$2" "$3" $# 'tcpconnect' 'assertTCPConnect' "assertTCPConnect failed: cannot connect to '$1 $2'"
+}
 
 # TODO filesystem tests
 
