@@ -13,7 +13,7 @@ dash and zsh).
 Usage is relatively straightfoward (using latest release version):
 
 ```Shell
-curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.0.3/src/main/sh/provashell'
+curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.1.0/src/main/sh/provashell'
 cat > test.sh <<EOF
 #!/bin/bash
 #@Test
