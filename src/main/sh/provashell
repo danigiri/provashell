@@ -53,20 +53,21 @@ exitIfFailedAndConfiguredToExit_() {
 	[ -n "$PS_EXIT_ON_FAIL" ] && [ "$1" -ne 0 ] && exit "$1"
 }
 
-# ------------------------------------------------------------------------------
-ping_() {
-	# suppress statistics (stderr will still go out)
-	host_="$1"
-	/sbin/ping -q -c 1 -o "$host_" >/dev/null
-	return $?
-}
-
 
 # ------------------------------------------------------------------------------
 getPath_() {
 	# linux whereis adds a prefix with the bin and ':' and macosx doesn't =)
 	# let's use which
 	which "$1"
+}
+
+
+# ------------------------------------------------------------------------------
+ping_() {
+	# suppress statistics (stderr will still go out)
+	host_="$1"
+	/sbin/ping -q -c 1 -o "$host_" >/dev/null
+	return $?
 }
 
 
@@ -86,6 +87,28 @@ tcpconnect_() {
 	fi
 }
 
+# ------------------------------------------------------------------------------
+dig_() {
+	# try to dig host $2 on nameserver $1
+	nameserver_="$1"
+	host_="$2"
+	dig_=$( getPath_ 'dig' )
+	if [ -x "$dig_" ]; then
+		# dig, use short answer, one try, default timeout (5s)
+		# if error (such as nameserver not reachable) fail test
+		# if no entries, fail test
+		# otherwise, pass
+		entries_=$( $dig_ @"$nameserver_" +tries=1 +short "$host_" 2> /dev/null)
+		[ "$?" -ne 0 ] && return "$NOTPASSED_"
+		count_=$( printf %s "$entries_" | wc -c )
+		[ "$count_" -eq 0 ] && return "$NOTPASSED_"
+		return "$PASSED_"
+	else
+		echoVerbose_ "skipping assertDNSLookup on '@$nameserver_ $host_', no dig found"
+		asserts_=$((asserts_-1))
+		return 0
+	fi
+}
 
 # ______________________________________________________________________________
 # echo the annotated <file> <annotation name>
@@ -149,6 +172,10 @@ evaluateTestExpr_() {
 	'tcpconnect')
 		tcpconnect_ "$op1_" "$op2_"
 		if [ "$?" -eq 0 ]; then passed_="$PASSED_"; fi	
+	;;
+	'dig')
+		dig_ "$op1_" "$op2_"
+		if [ "$?" -eq "$PASSED_" ]; then passed_="$PASSED_"; fi	
 	;;
 	esac
 	
@@ -384,16 +411,40 @@ assertN() {
 }
 
 
+## Networking tests
+
 # ------------------------------------------------------------------------------
 assertPing() {
-	# <message or op1> <op1 or nothing> <num params> <operator> <test name> <default message>
 	testUnary_ "$1" "$2" $# 'ping' 'assertPing' "assertPing failed: cannot ping '$1'"
 }
 
-# _____________________________________________________________________________
+
+# ------------------------------------------------------------------------------
 assertTCPConnect() {
 	testBinary_ "$1" "$2" "$3" $# 'tcpconnect' 'assertTCPConnect' "assertTCPConnect failed: cannot connect to '$1 $2'"
 }
+
+# ------------------------------------------------------------------------------
+assertDNSLookup() {
+	# [message] <nameserver>	<lookup>
+	testBinary_ "$1" "$2" "$3" $# 'dig' 'assertDNSLookup' "assertDNSLookup failed: cannot lookup the DNS entry '$2' using '$1'"
+}
+
+# ------------------------------------------------------------------------------
+assertPublicDNSLookup() {
+	# [message] <lookup>
+	if [ $# -eq 1 ]; then
+		m_="assertPublicDNSLookup failed: cannot lookup the DNS entry '$1' using google dns"
+		testBinary_ '8.8.8.8' "$1" '' 2 'dig' 'assertPublicDNSLookup' "$m_"
+	elif [ $# -eq 2 ]; then
+		# custom message, so note default message will never be usd
+		testBinary_  "$1" '8.8.8.8' "$2" 3 'dig' 'assertPublicDNSLookup' ''
+	else 
+		echoerr_ "assertPublicDNSLookup: Wrong number of parameters passed to test: '$#'"
+		exit "$ERR_PARAMS_"
+	fi
+}
+
 
 # TODO filesystem tests
 

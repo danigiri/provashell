@@ -202,6 +202,25 @@ Ping the specified address with a single packet with default timeout. Will fail
 if the IP cannot be reached or the DNS entry does not resolve. This test 
 currently attaches to the default network interface.
 
+####	assertTCPConnect ['message'] <'IP or DNS entry'> <port>
+	
+Connect to the specified address and port using netcat -z (zero I/O flag). 
+Will fail if the IP cannot be reached or the DNS entry does not resolve. This 
+test currently attaches to the default network interface.
+
+####	assertDNSLookup ['message'] <'DNS server IP'> <'DNS entry'>
+	
+Try to resolve the DNS entry using the specified DNS server. 
+Will fail if the nameserver cannot be reached or the DNS entry does not resolve
+using that specified nameserver. This test currently attaches to the default 
+network interface.
+
+####	assertPublicDNSLookup ['message'] <'DNS entry'>
+	
+Try to resolve the DNS entry using a public DNS server (namely google's). 
+Will fail if the google nameserver cannot be reached or the DNS entry does not 
+resolve corectly. This test currently attaches to the default network interface.
+
 
 ### Assert function return codes
 

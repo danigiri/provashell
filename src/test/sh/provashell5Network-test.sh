@@ -64,6 +64,40 @@ m_=$(assertTCPConnect 'message' 'www.xyz12345xzy12345xyz.zzz' 53 2>/dev/null)
 [ "$m_" != 'message' ] && err_ 'assertTCPConnect to a random host should fail with message'
 
 
+echo_ '-------------- Testing assertDNSLookup --------------'
+$(assertDNSLookup 2>/dev/null)
+[ $? -ne "$PARAMS_" ] && err_ 'assertDNSLookup without params should be an error' 
+
+$(assertDNSLookup '8.8.8.8' 2>/dev/null)
+[ $? -ne $PARAMS_ ] && err_ 'assertDNSLookup with only one param should be an error' 
+
+assertDNSLookup '8.8.8.8' 'cisco.com'
+[ $? -ne "$OK_" ] && err_ 'assertDNSLookup using google dns primary at 8.8.8.8 of cisco.com should not fail'
+
+assertDNSLookup '8.8.8.85' 'cisco.com' 2>1 >/dev/null
+[ $? -ne $FAIL_ ] && err_ 'assertDNSLookup using a nonexistant dns server should fail'
+
+assertDNSLookup '8.8.8.8' 'www.xyz12345xzy12345xyz.zzz' 2>1 >/dev/null
+[ $? -ne $FAIL_ ] && err_ 'assertDNSLookup a nonexistant host should fail'
+
+m_=$(assertDNSLookup 'message' '8.8.8.8' 'www.xyz12345xzy12345xyz.zzz' 2>/dev/null)
+[ "$m_" != 'message' ] && err_ 'assertDNSLookup of a random host should fail with message'
+
+
+echo_ '-------------- Testing assertPublicDNSLookup --------------'
+$(assertPublicDNSLookup 2>/dev/null)
+[ $? -ne "$PARAMS_" ] && err_ 'assertPublicDNSLookup without params should be an error' 
+
+assertPublicDNSLookup 'cisco.com'
+[ $? -ne "$OK_" ] && err_ 'assertPublicDNSLookup using a public dns of cisco.com should not fail'
+
+assertPublicDNSLookup 'www.xyz12345xzy12345xyz.zzz' 2>1 >/dev/null
+[ $? -ne $FAIL_ ] && err_ 'assertPublicDNSLookup of a nonexistant host should fail'
+
+m_=$(assertPublicDNSLookup 'message' 'www.xyz12345xzy12345xyz.zzz' 2>/dev/null)
+[ "$m_" != 'message' ] && err_ 'assertPublicDNSLookup of a random host should fail with message'
+
+
 [ ! -z "$PS_SKIP_NET" ] && stopSkippingTests
 
 
