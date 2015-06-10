@@ -47,7 +47,7 @@ There are three ways to get the script:
 Downloading the script itself is enough as _provashell_ has no dependencies 
 (example downloads the 2.0.1 release).
 ```Shell
-curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.0.3/src/main/sh/provashell'
+curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.1.0/src/main/sh/provashell'
 ```
 
 ### Using git
@@ -310,7 +310,7 @@ Absolutely welcome! Just do a pull request :)
 
 ## License
 
-Copyright 2014 Daniel Giribet <dani - calidos.cat>
+Copyright 2015 Daniel Giribet <dani - calidos.cat>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
