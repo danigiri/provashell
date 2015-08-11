@@ -307,6 +307,9 @@ risk.
 
 Absolutely welcome! Just do a pull request :)
 
+## Release notes
+
+2.1.1 - Fixed an assertN, assertZ bug where the assertion did not work when having a message (thx to @jroimartin)
 
 ## License
 
