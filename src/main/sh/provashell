@@ -299,7 +299,7 @@ testEmptyOrNot_() {
 		message_="$defaultMessage_"
 	elif [ "$numParams_" -eq 2 ]; then
 		message_="$1"
-		input_=" 2"
+		input_="$2"
 	else 
 		echoerr_ "$testName_: Wrong number of parameters passed to test: '$numParams_'"
 		exit $ERR_PARAMS_	

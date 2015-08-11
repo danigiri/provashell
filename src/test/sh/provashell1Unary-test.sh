@@ -65,6 +65,9 @@ assertZ ''
 assertZ 'a' >/dev/null
 [ $? -ne $FAIL_ ] && err_ 'assertZ a non empty string should fail'
 
+m_=$(assertZ 'message' 'nonempty')
+[ "$m_" != 'message' ] && err_ 'assertZ a nonempty string should fail with message'
+
 
 echo '-------------- Testing assertN ---------------'
 
@@ -77,5 +80,7 @@ assertN '' >/dev/null
 assertN 'a'
 [ $? -ne $OK_ ] && err_ 'assertN a non empty string should not fail'
 
+m_=$(assertN 'message' '')
+[ "$m_" != 'message' ] && err_ 'assertN an empty string should fail with message'
 
 exit 0

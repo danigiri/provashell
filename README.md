@@ -13,7 +13,7 @@ dash and zsh).
 Usage is relatively straightfoward (using latest release version):
 
 ```Shell
-curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.1.0/src/main/sh/provashell'
+curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.1.1/src/main/sh/provashell'
 cat > test.sh <<EOF
 #!/bin/bash
 #@Test
@@ -45,9 +45,9 @@ There are three ways to get the script:
 ### The quick n' dirty
 
 Downloading the script itself is enough as _provashell_ has no dependencies 
-(example downloads the 2.0.1 release).
+(example downloads the 2.1.1 release).
 ```Shell
-curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.1.0/src/main/sh/provashell'
+curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.1.1/src/main/sh/provashell'
 ```
 
 ### Using git
