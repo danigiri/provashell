@@ -202,7 +202,7 @@ Ping the specified address with a single packet with default timeout. Will fail
 if the IP cannot be reached or the DNS entry does not resolve. This test 
 currently attaches to the default network interface.
 
-####	assertTCPConnect ['message'] <'IP or DNS entry'> <port>
+####	assertTCPConnect ['message'] <'IP or DNS entry'> \<port\>
 	
 Connect to the specified address and port using netcat -z (zero I/O flag). 
 Will fail if the IP cannot be reached or the DNS entry does not resolve. This 
