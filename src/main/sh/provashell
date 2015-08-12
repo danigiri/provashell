@@ -79,7 +79,7 @@ tcpconnect_() {
 	nc_=$( getPath_ 'nc' )
 	if [ -x "$nc_" ]; then
 		# -w 1: one second timeout -z: scan port 
-		$nc_ -w 1 -z "$host_" "$port_" < /dev/null
+		$nc_ -w 1 -z -G 2 "$host_" "$port_" < /dev/null
 	else
 		echoVerbose_ "skipping assertTCPConnect on '$host_ $port', no netcat found"
 		asserts_=$((asserts_-1))
