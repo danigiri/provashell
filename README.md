@@ -13,7 +13,7 @@ dash and zsh).
 Usage is relatively straightfoward (using latest release version):
 
 ```Shell
-curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.1.1/src/main/sh/provashell'
+curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.2.0/src/main/sh/provashell'
 cat > test.sh <<EOF
 #!/bin/bash
 #@Test
@@ -45,9 +45,9 @@ There are three ways to get the script:
 ### The quick n' dirty
 
 Downloading the script itself is enough as _provashell_ has no dependencies 
-(example downloads the 2.1.1 release).
+(example downloads the 2.2.0 release).
 ```Shell
-curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.1.1/src/main/sh/provashell'
+curl -O 'https://raw.githubusercontent.com/danigiri/provashell/provashell-2.2.0/src/main/sh/provashell'
 ```
 
 ### Using git
@@ -320,11 +320,12 @@ Absolutely welcome! Just do a pull request :)
 
 ## Release notes
 
+2.2.0 - Added network timeout environment variable and assert trace support
 2.1.1 - Fixed an assertN, assertZ bug where the assertion did not work when having a message (thx to @jroimartin)
 
 ## License
 
-Copyright 2015 Daniel Giribet <dani - calidos.cat>
+Copyright 2016 Daniel Giribet <dani - calidos.cat>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
