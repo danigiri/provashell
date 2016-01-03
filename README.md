@@ -263,6 +263,9 @@ skipping.
 
 Behaviour is back to assertions being checked.
 
+####	isSkippingTests
+
+Returns `0` if _provashell_ is skipping tests 
 
 ### Environment variables
 
@@ -271,13 +274,17 @@ defined with any nonempty value:
 
 ####	PS_VERBOSE=<whatever>
 
-Adds extra diagnostics messages to output. For instance it outputs which
+Adds some diagnostics messages to output, such as test functions being executed.
+
+####	PS_TRACE=<whatever>
+
+Adds even more diagnostics messages to output. For instance it outputs which
 assertions are actually being executed.
 
 ####	PS_QUIET=<whatever>
 
 Supresses _provashell_'s normal output (for now the end message stating how 
-many tests have been ran). Overrides `PS_VERBOSE`.
+many tests have been ran). Overrides `PS_VERBOSE` and `PS_TRACE`.
 
 
 ####	PS_EXIT_ON_FAIL=<whatever>
@@ -289,13 +296,17 @@ pipelines.
 
 Failure messages are output to STDERR instead of STDOUT (which is the default).
 
+####	PS_NET_TIMEOUT=<seconds>
+
+Number of seconds of timeout for network asserts (default is 1 second).
+
 
 ## A note on security
 
 _provashell_ previously used `eval` for added flexibility and to support
 running expressions directly. Which meant that if expressions included 
-user-supplied  input there was a very real security risk. Now the library 
-does not run `eval` anymore which means no potential security problems (yay!). 
+user-supplied input there was a very real security risk. Now the library 
+does not run `eval` anymore so it should now be much more secure (yay!). 
 You should check the source code in any case and see for yourself.
 
 The only code actually ran by the testing library is the set of setup functions 

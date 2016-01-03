@@ -26,14 +26,17 @@ ERR_TESTNOTVALID_=5
 
 # PS_SKIP_ALL: provashell does not run any tests and only loads its functions
 # PS_VERBOSE: output diagnostics stuff on STDOUT
-# PS_QUIET: be absolutely quiet, overrides verbose
+# PS_TRACE: print asserts to STDERR
+# PS_QUIET: be absolutely quiet, overrides verbose and trace
+# PS_EXIT_ON_FAIL:
+# PS_FAILS_TO_STDERR:
 
 #PS_SKIP_ALL=
 #PS_VERBOSE=
 #PS_QUIET=
 #PS_EXIT_ON_FAIL=
 #PS_FAILS_TO_STDERR=
-
+[ -z "$PS_NET_TIMEOUT" ] && PS_NET_TIMEOUT=1
 
 # INTERNAL HELPER FUNCTIONS
 
@@ -46,6 +49,15 @@ echoerr_() { printf %s\\n "$@" 1>&2; }
 # Output message on STDOUT if flags allow us <message>
 echoVerbose_() { [ -n "$PS_VERBOSE" ] && [ -z "$PS_QUIET" ] && printf %s\\n "$@"; }
 
+# ______________________________________________________________________________
+# Output message on STDERR if flags allow us <message>
+echoTrace_() { 
+	m_="$@"
+	if isSkippingTests; then
+		m_="(skipped) $m_"
+	fi
+	[ -n "$PS_TRACE" ] && [ -z "$PS_QUIET" ] && printf \\t%s\\n "$m_" 1>&2; 
+}
 
 # ______________________________________________________________________________  
 # Exit if test just failed and our settings are set to exit on test assert fails
@@ -64,9 +76,10 @@ getPath_() {
 
 # ------------------------------------------------------------------------------
 ping_() {
-	# suppress statistics (stderr will still go out)
 	host_="$1"
-	/sbin/ping -q -c 1 -o "$host_" >/dev/null
+	# suppress statistics (stderr will still go out)
+	# using -W as it seems to be the standard
+	/sbin/ping -q -W "$PS_NET_TIMEOUT" -c 1 -o "$host_" >/dev/null
 	return $?
 }
 
@@ -78,8 +91,8 @@ tcpconnect_() {
 	port_="$2"
 	nc_=$( getPath_ 'nc' )
 	if [ -x "$nc_" ]; then
-		# -w 1: one second timeout -z: scan port 
-		$nc_ -w 1 -z -G 2 "$host_" "$port_" < /dev/null
+		# -w: timeout -z: scan port 
+		$nc_ -w "$PS_NET_TIMEOUT" -z -G 2 "$host_" "$port_" < /dev/null
 	else
 		echoVerbose_ "skipping assertTCPConnect on '$host_ $port', no netcat found"
 		asserts_=$((asserts_-1))
@@ -98,7 +111,7 @@ dig_() {
 		# if error (such as nameserver not reachable) fail test
 		# if no entries, fail test
 		# otherwise, pass
-		entries_=$( $dig_ @"$nameserver_" +tries=1 +short "$host_" 2> /dev/null)
+		entries_=$( $dig_ @"$nameserver_" +tries=1 +short +time="$PS_NET_TIMEOUT" "$host_" 2> /dev/null)
 		[ "$?" -ne 0 ] && return "$NOTPASSED_"
 		count_=$( printf %s "$entries_" | wc -c )
 		[ "$count_" -eq 0 ] && return "$NOTPASSED_"
@@ -235,6 +248,7 @@ testBinary_() {
 		exit "$ERR_PARAMS_"	
 	fi
 	
+	echoTrace_ "$testName_ $op1_ $operator_ $op2_"
 
 	evaluateTestExpr_ "$op1_" "$operator_" "$op2_"
 	result_=$?
@@ -270,6 +284,7 @@ testUnary_() {
 		exit "$ERR_PARAMS_"	
 	fi
 	
+	echoTrace_ "$operator_ $op1_"
 
 	evaluateTestExpr_ "$op1_" "$operator_" ''
 	result_=$?
@@ -304,6 +319,8 @@ testEmptyOrNot_() {
 		echoerr_ "$testName_: Wrong number of parameters passed to test: '$numParams_'"
 		exit $ERR_PARAMS_	
 	fi;
+
+	echoTrace_ "$testName_ $input_"
 
 	[ -n "$SKIPPING__" ] && return 0
 	[ -z "$asserts_" ] && asserts_=0
@@ -342,6 +359,12 @@ startSkippingTests() {
 # ______________________________________________________________________________  
 stopSkippingTests() {
 	unset SKIPPING__
+}
+
+# ______________________________________________________________________________  
+isSkippingTests() {
+	[ -z "$SKIPPING__" ] && return 1
+	return 0
 }
 
 
