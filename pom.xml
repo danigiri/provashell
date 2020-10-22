@@ -25,7 +25,7 @@
 	<description>A minimalistic Apache-2.0 licensed (bash) shell unit testing library
 	</description>
     <inceptionYear>2014</inceptionYear>
-    <url>http://dani.calidos.com</url>
+    <url>http://dani.calidos.cat</url>
         
     <properties>
     	<install.prefix_>/opt</install.prefix_>
