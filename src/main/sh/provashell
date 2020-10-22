@@ -1,6 +1,6 @@
 # PROVASHELL FUNCTIONS - Shell unit testing for the masses
 
-#  Copyright 2014 Daniel Giribet <dani - calidos.cat>
+#  Copyright 2016 Daniel Giribet <dani - calidos.cat>
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ dig_() {
 	host_="$2"
 	dig_=$( getPath_ 'dig' )
 	if [ -x "$dig_" ]; then
-		# dig, use short answer, one try, default timeout (5s)
+		# dig, use short answer, one try, specify timeout
 		# if error (such as nameserver not reachable) fail test
 		# if no entries, fail test
 		# otherwise, pass
